@@ -1,0 +1,72 @@
+.table-responsive {
+    width: 100%;
+    margin-bottom: 15px;
+    overflow-y: hidden;
+    display:table !important;
+}
+.table{
+    --bs-table-color-type: initial;
+    --bs-table-bg-type: initial;
+    --bs-table-color-state: initial;
+    --bs-table-bg-state: initial;
+    --bs-table-color: #110049;
+    --bs-table-bg: #ffffff12;
+    --bs-table-border-color: #dee2e600;
+    --bs-table-accent-bg: transparent;
+    --bs-table-striped-color: #000000;
+    --bs-table-striped-bg: rgba(var(--bs-emphasis-color-rgb), 0.05);
+    --bs-table-active-color: #000000;
+    --bs-table-active-bg: rgba(var(--bs-emphasis-color-rgb), 0.1);
+    --bs-table-hover-color: #ffffff;
+    --bs-table-hover-bg: rgb(31 49 85 / 87%);
+    width: 100%;
+    margin-bottom: 1rem;
+    vertical-align: top;
+    border-color: var(--bs-table-border-color);
+}
+
+.fixed-table-body {
+    box-shadow: 6px 6px 12px #00000075, -6px -6px 12px #ffffff5c !important;
+    border: #20315521 solid 1px;
+}
+.modal-backdrop {
+    background-color: #20315569!important;
+}
+
+#recipient-name{
+    background-color: #ffffff;
+}
+
+.btn-c {
+    box-shadow: inset 2px 2px 5px #ffffffa1, inset -3px -3px 7px #0000008c!important;
+}
+.btn-c:hover {
+    box-shadow: inset 2px 2px 5px #000000, inset -3px -3px 7px #FFFFFF00!important;
+}
+#novo_usuario{
+    /*margin-bottom: -17px !important;*/
+    margin-right: 5px;
+    margin-top: -3px;
+    height: 44px;
+    color: white;
+    background-color: #203155;
+    width: 92px;
+
+}
+
+.white{
+    color: white;
+}
+#mostra_senha_gerada{
+    display: flex;
+    justify-content: space-around;
+}
+
+
+/*.modal-senha{*/
+/*    background-color: white!important;*/
+/*}*/
+
+/*.modal-title-senha{*/
+/*    color: black!important;*/
+/*}*/

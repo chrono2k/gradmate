@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GradMate</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="../../css/alunos/alunos.css?v=<?php echo date('YmdHis'); ?>">
+    <style>
+    </style>
+</head>
+<?php
+include("../generics/header.php");
+include("../generics/sidebar.php");
+?>
+
+<body>
+
+<div id="loading">
+    <div class="spinner"></div>
+    <p>Aguarde...</p>
+</div>
+
+
+<main class="main-content" id="mainContent">
+
+    <div class="page-header">
+        <h1>
+            <i class="fa-solid fa-users"></i>
+            Gerenciamento de Alunos
+        </h1>
+    </div>
+
+    <!-- Stats -->
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-icon primary">
+                <i class="fas fa-user"></i>
+            </div>
+            <div class="stat-info">
+                <h3 id="totalAlunos">0</h3>
+                <p>Total de Alunos</p>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon success">
+                <i class="fas fa-check-circle"></i>
+            </div>
+            <div class="stat-info">
+                <h3 id="alunosFormados">0</h3>
+                <p>Alunos formados</p>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon warning">
+                <i class="fas fa-clock"></i>
+            </div>
+            <div class="stat-info">
+                <h3 id="alunosComPendencia">5</h3>
+                <p>Alunos com pendencias</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Action Bar -->
+    <div class="action-bar">
+        <div class="search-box">
+            <i class="fas fa-search"></i>
+            <input type="text" id="searchInput" placeholder="Buscar alunos...">
+        </div>
+        <button class="btn btn-primary" onclick="openModal()">
+            <i class="fas fa-plus"></i>
+            Novo Aluno
+        </button>
+    </div>
+
+    <!-- Table -->
+    <div class="table-container">
+        <div class="table-header">
+            <h2>
+                <i class="fas fa-list"></i>
+                Lista de Alunos
+            </h2>
+            <button class="btn btn-secondary btn-icon" onclick="loadAlunos()" title="Atualizar">
+                <i class="fas fa-sync-alt"></i>
+            </button>
+        </div>
+        <div class="table-wrapper">
+            <table id="cursosTable">
+                <thead>
+                <tr>
+                    <th>Nome</th>
+                    <th>R.A.</th>
+                    <th>Curso</th>
+                    <th>Observação</th>
+                    <th>status</th>
+                </tr>
+                </thead>
+                <tbody id="cursosTableBody">
+                <!-- Dados serão inseridos aqui -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+    </div>
+
+    <!-- Modal de Cadastro/Edição -->
+    <div class="modal-overlay" id="modalOverlay">
+        <div class="modal">
+            <div class="modal-header">
+                <h3>
+                    <i class="fas fa-graduation-cap"></i>
+                    <span id="modalTitle">Novo Curso</span>
+                </h3>
+                <button class="modal-close" onclick="closeModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="courseForm">
+                    <input type="hidden" id="courseId">
+
+                    <div class="form-group">
+                        <label for="courseName">
+                            <i class="fas fa-book"></i>
+                            Nome do Curso
+                        </label>
+                        <input
+                                type="text"
+                                id="courseName"
+                                placeholder="Ex: Análise e Desenvolvimento de Sistemas"
+                                required
+                        >
+                    </div>
+
+                    <div class="form-group">
+                        <label for="courseObservation">
+                            <i class="fas fa-comment-alt"></i>
+                            Observação
+                        </label>
+                        <textarea
+                                id="courseObservation"
+                                placeholder="Adicione detalhes, informações importantes ou observações sobre o curso..."
+                        ></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal()">
+                    <i class="fas fa-times"></i>
+                    Cancelar
+                </button>
+                <button class="btn btn-success" onclick="saveCourse()">
+                    <i class="fas fa-save"></i>
+                    Salvar Curso
+                </button>
+            </div>
+        </div>
+    </div>
+</main>
+</body>
+</html>
+<script src="../../assets/js/alunos/alunos.js?v=<?php echo date('YmdHis'); ?>"></script>
