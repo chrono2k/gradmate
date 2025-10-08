@@ -26,7 +26,7 @@ include("../generics/sidebar.php");
 
     <div class="page-header">
         <h1>
-            <i class="fa-graduation-cap"></i>
+            <i class="fa-solid fa-graduation-cap"></i>
             Gerenciamento de Professores
         </h1>
     </div>
