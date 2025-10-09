@@ -1,10 +1,7 @@
-window.addEventListener('load', () => {
-    setTimeout(() => {
-        document.getElementById('loading').classList.add('hidden');
-    }, 1500);
+document.addEventListener('DOMContentLoaded', () => {
+    loadCursos();
 });
 
-// Menu Toggle (Mobile)
 const menuToggle = document.getElementById('menuToggle');
 const sidebar = document.getElementById('sidebar');
 const topbar = document.getElementById('topbar');
@@ -14,7 +11,7 @@ menuToggle.addEventListener('click', () => {
     sidebar.classList.toggle('open');
 });
 
-// Dropdown Navigation
+
 document.querySelectorAll('.nav-dropdown-toggle').forEach(toggle => {
     toggle.addEventListener('click', (e) => {
         e.preventDefault();
@@ -23,7 +20,6 @@ document.querySelectorAll('.nav-dropdown-toggle').forEach(toggle => {
     });
 });
 
-// Active Link
 document.querySelectorAll('.nav-link').forEach(link => {
     link.addEventListener('click', (e) => {
         if (!link.classList.contains('nav-dropdown-toggle')) {
@@ -33,7 +29,6 @@ document.querySelectorAll('.nav-link').forEach(link => {
     });
 });
 
-    // Responsive Sidebar
 function checkWidth() {
     if (window.innerWidth <= 768) {
         sidebar.classList.add('collapsed');
@@ -49,7 +44,6 @@ function checkWidth() {
 window.addEventListener('resize', checkWidth);
 checkWidth();
 
-// Close sidebar on click outside (mobile)
 document.addEventListener('click', (e) => {
     if (window.innerWidth <= 768) {
         if (!sidebar.contains(e.target) && !menuToggle.contains(e.target)) {

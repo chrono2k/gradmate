@@ -1,3 +1,4 @@
+<link rel="stylesheet" href="../../assets/libs/Izitoast/iziToast-master/dist/css/iziToast.min.css">
 <link rel="stylesheet" href="../../css/generic/generic.css?v=<?php echo date('YmdHis'); ?>">
 <link rel="stylesheet" href="../../css/generic/header.css?v=<?php echo date('YmdHis'); ?>">
 <link rel="stylesheet" href="../../assets/libs/jquery/VanillaToasts/vanillatoasts.css">
@@ -33,4 +34,7 @@
     </div>
 </header>
 
+<script src="../../assets/js/generics/header.js?v=<?php echo date('YmdHis'); ?>"></script>
+<script src="../../assets/libs/Izitoast/iziToast-master/dist/js/iziToast.min.js"></script>
+<script src="../../assets/js/generics/funcoes_auxiliares.js?v=<?php echo date('YmdHis'); ?>"></script>
 <script src="../../assets/libs/jquery/VanillaToasts/vanillatoasts.js"></script>

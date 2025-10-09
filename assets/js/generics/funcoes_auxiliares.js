@@ -25,93 +25,127 @@ function valida_form(dados) {
     return true;
 }
 
-function valida_form_bootstrap_aux(dados_form, seletor_form) {
-    for (var i = 0; i < dados_form.length; i++) {
-        if ($("[name='" + dados_form[i].name + "'").prop("required")) {
-            if (dados_form[i].value == "") {
-                seletor_form.addClass("was-validated")
-                return false;
-            }
-        }
-    }
-    seletor_form.removeClass("was-validated")
-    return true;
+
+/**
+ * Obter token de autenticação
+ */
+function getAuthToken() {
+    return localStorage.getItem('token');
 }
 
-function capitalizar_primeira_letra(string)
-{
-    return string.charAt(0).toUpperCase() + string.slice(1).toLowerCase();
+/**
+ * Configurar headers padrão para requisições
+ */
+function getHeaders() {
+    const token = getAuthToken();
+    return {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+    };
 }
-function print_status_requisicao(mensagem = "", tipo = "sucesso", recarregar = false, timeout = [false, 0]) {
-    let intervalo = timeout[0]
-    let tempo_intervalo = timeout[1]
-    if (tipo == "sucesso") {
-        iziToast.success({
-            timeout: 10000,
-            close: false,
-            overlay: true,
-            zindex: 999999999,
-            displayMode: 'once',
-            position: "center",
-            message: mensagem,
-            layout: 3,
-            buttons: [['<button><b>OK</b></button>', function (instance, toast) {
-                instance.hide({ transitionOut: 'fadeOut' }, toast, 'button');
-                if (recarregar) {
-                    location.reload();
-                }
-            }, true],
-            ],
+
+/**
+ * Fazer requisição GET
+ */
+async function apiGet(endpoint) {
+    try {
+        const response = await fetch(`${link_api_grad_mate}${endpoint}`, {
+            method: 'GET',
+            headers: getHeaders()
         });
 
-    }
-    if (tipo == "error") {
-        iziToast.error({
-            timeout: 10000,
-            close: false,
-            overlay: true,
-            displayMode: 1,
-            theme: 'light',
-            color: 'red',
-            id: "erro",
-            zindex: 999999999,
-            message: mensagem,
-            position: 'center',
-            buttons: [['<button><b>OK</b></button>', function (instance, toast) {
-                instance.hide({ transitionOut: 'fadeOut' }, toast, 'button');
-                if (recarregar) {
-                    location.reload();
-                }
-            }, true],
-            ],
-        });
-    }
-    if (tipo == "aviso") {
-        iziToast.warning({
-            timeout: 10000,
-            close: false,
-            overlay: true,
-            displayMode: 'once',
-            position: "center",
-            message: mensagem,
-            theme: 'light',
-            color: 'yellow',
-            zindex: 999999999,
-            layout: 3,
-            buttons: [['<button><b>OK</b></button>', function (instance, toast) {
-                instance.hide({ transitionOut: 'fadeOut' }, toast, 'button');
-                if (recarregar) {
-                    location.reload();
-                }
-            }, true],
-            ],
-        });
-    }
-    if (recarregar) {
-        if (intervalo) {
-            setTimeout(function () {
-                location.reload();
-            }, tempo_intervalo)
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
         }
+
+        return await response.json();
+    } catch (error) {
+        console.error('Erro na requisição GET:', error);
+        throw error;
     }
+}
+
+/**
+ * Fazer requisição POST
+ */
+async function apiPost(endpoint, data) {
+    try {
+        const response = await fetch(`${link_api_grad_mate}${endpoint}`, {
+            method: 'POST',
+            headers: getHeaders(),
+            body: JSON.stringify(data)
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
+        }
+
+        return await response.json();
+    } catch (error) {
+        console.error('Erro na requisição POST:', error);
+        throw error;
+    }
+}
+
+/**
+ * Fazer requisição PUT
+ */
+async function apiPut(endpoint, data) {
+    try {
+        const response = await fetch(`${link_api_grad_mate}${endpoint}`, {
+            method: 'PUT',
+            headers: getHeaders(),
+            body: JSON.stringify(data)
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
+        }
+
+        return await response.json();
+    } catch (error) {
+        console.error('Erro na requisição PUT:', error);
+        throw error;
+    }
+}
+
+/**
+ * Fazer requisição DELETE
+ */
+async function apiDelete(endpoint, data) {
+    try {
+        const response = await fetch(`${link_api_grad_mate}${endpoint}`, {
+            method: 'DELETE',
+            headers: getHeaders(),
+            body: JSON.stringify(data)
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
+        }
+
+        return await response.json();
+    } catch (error) {
+        console.error('Erro na requisição DELETE:', error);
+        throw error;
+    }
+}
+
+/**
+ * Exibir Toast
+ */
+
+function showToast(title, message, type = 'success') {
+    VanillaToasts.create({
+        positionClass: 'topRight',
+        title: title,
+        text: message,
+        type: type,
+        icon: '../../assets/img/icone-tcc.png',
+        timeout: 9000,
+        callback: function () { "" }
+    });
 }

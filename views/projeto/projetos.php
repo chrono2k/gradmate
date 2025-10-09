@@ -16,10 +16,10 @@ include("../generics/sidebar.php");
 
 <body>
 
-<div id="loading">
-    <div class="spinner"></div>
-    <p>Aguarde...</p>
-</div>
+<!--<div id="loading">-->
+<!--    <div class="spinner"></div>-->
+<!--    <p>Aguarde...</p>-->
+<!--</div>-->
 
 
 <main class="main-content" id="mainContent">
@@ -89,6 +89,7 @@ include("../generics/sidebar.php");
                     <th>Nome</th>
                     <th>Cursos</th>
                     <th>Observação</th>
+                    <th>Status</th>
                 </tr>
                 </thead>
                 <tbody id="professoresTableBody">
@@ -141,7 +142,7 @@ include("../generics/sidebar.php");
                 </form>
             </div>
             <div class="modal-footer">
-                <button class="btn btn-secondary" onclick="closeModal()">
+                <button class="btn btn-cancel" onclick="closeModal()">
                     <i class="fas fa-times"></i>
                     Cancelar
                 </button>

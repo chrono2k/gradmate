@@ -1,74 +1,75 @@
-let cursos = [
-    {
-        id: 1,
-        nome: 'Análise e Desenvolvimento de Sistemas',
-        observacao: 'Curso focado em desenvolvimento de software e análise de requisitos',
-        dataCadastro: '2024-01-15',
-        status: 'ativo'
-    },
-    {
-        id: 2,
-        nome: 'Gestão da Tecnologia da Informação',
-        observacao: 'Formação de profissionais para gerenciar equipes e projetos de TI',
-        dataCadastro: '2024-02-20',
-        status: 'ativo'
-    },
-    {
-        id: 3,
-        nome: 'Redes de Computadores',
-        observacao: 'Especialização em infraestrutura e segurança de redes',
-        dataCadastro: '2024-03-10',
-        status: 'ativo'
-    }
-];
-
+let cursos = [];
 let editingId = null;
 
-// Carregar cursos na tabela
-function loadCursos() {
+document.addEventListener('DOMContentLoaded', () => {
+    loadCursos();
+});
+
+/**
+ * Carregar cursos do servidor
+ */
+async function loadCursos() {
     const tbody = document.getElementById('cursosTableBody');
     const searchTerm = document.getElementById('searchInput').value.toLowerCase();
 
-    let filteredCursos = cursos;
-    if (searchTerm) {
-        filteredCursos = cursos.filter(curso =>
-            curso.nome.toLowerCase().includes(searchTerm) ||
-            curso.observacao.toLowerCase().includes(searchTerm)
-        );
-    }
+    tbody.innerHTML = `
+        <tr>
+            <td colspan="5" style="text-align: center; padding: 40px;">
+                <i class="fas fa-spinner fa-spin" style="font-size: 2rem; color: var(--primary);"></i>
+                <p style="margin-top: 10px; color: var(--text-gray);">Carregando cursos...</p>
+            </td>
+        </tr>
+    `;
 
-    if (filteredCursos.length === 0) {
-        tbody.innerHTML = `
+    try {
+        const response = await apiGet('course/?status=all');
+
+        if (response.success) {
+            cursos = response.courses;
+            let filteredCursos = cursos;
+            if (searchTerm) {
+                filteredCursos = cursos.filter(curso =>
+                    curso.name.toLowerCase().includes(searchTerm) ||
+                    (curso.observation && curso.observation.toLowerCase().includes(searchTerm))
+                );
+            }
+
+            if (filteredCursos.length === 0) {
+                tbody.innerHTML = `
                     <tr>
                         <td colspan="5">
                             <div class="empty-state">
                                 <i class="fas fa-inbox"></i>
                                 <h3>Nenhum curso encontrado</h3>
-                                <p>Comece cadastrando um novo curso</p>
+                                <p>${searchTerm ? 'Tente buscar por outro termo' : 'Comece cadastrando um novo curso'}</p>
                             </div>
                         </td>
                     </tr>
                 `;
-        return;
-    }
+                return;
+            }
+            console.log(filteredCursos)
+            console.log(filteredCursos[0].status.toUpperCase())
 
-    tbody.innerHTML = filteredCursos.map(curso => `
+            tbody.innerHTML = filteredCursos.map(curso =>
+
+                `
                 <tr>
                     <td>
                         <div class="course-name">
-                            <div class="course-icon">${curso.nome.substring(0, 2).toUpperCase()}</div>
-                            ${curso.nome}
+                            <div class="course-icon">${curso.name.substring(0, 2).toUpperCase()}</div>
+                            ${curso.name}
                         </div>
                     </td>
                     <td>
-                        <div class="observation" title="${curso.observacao}">
-                            ${curso.observacao || 'Sem observações'}
+                        <div class="observation" title="${curso.observation || ''}">
+                            ${curso.observation || 'Sem observações'}
                         </div>
                     </td>
-                    <td>${formatDate(curso.dataCadastro)}</td>
+                    <td>${formatDate(curso.created_at)}</td>
                     <td>
-                        <span class="badge badge-active">
-                            <i class="fas fa-check-circle"></i> Ativo
+                        <span class="badge ${curso.status.toLowerCase()=='ativo' ? 'badge-active' : 'badge-inactive'}">
+                            <i class="fas fa-check-circle"></i> ${curso.status.charAt(0).toUpperCase() + curso.status.slice(1)}
                         </span>
                     </td>
                     <td>
@@ -83,28 +84,54 @@ function loadCursos() {
                     </td>
                 </tr>
             `).join('');
+            updateStats();
+        } else {
+            throw new Error(response.message || 'Erro ao carregar cursos');
+        }
 
-    updateStats();
+    } catch (error) {
+        console.error('Erro ao carregar cursos:', error);
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="5">
+                    <div class="empty-state">
+                        <i class="fas fa-exclamation-triangle" style="color: var(--danger);"></i>
+                        <h3>Erro ao carregar cursos</h3>
+                        <p>${error.message}</p>
+                        <button class="btn btn-primary" onclick="loadCursos()" style="margin-top: 15px;">
+                            <i class="fas fa-sync-alt"></i> Tentar Novamente
+                        </button>
+                    </div>
+                </td>
+            </tr>
+        `;
+        showToast('Erro', 'Não foi possível carregar os cursos', 'error');
+    }
 }
 
-// Formatar data
+/**
+ * Formatar data
+ */
 function formatDate(dateString) {
+    if (!dateString) return 'N/A';
     const date = new Date(dateString);
     return date.toLocaleDateString('pt-BR');
 }
 
-// Atualizar estatísticas
+/**
+ * Atualizar estatísticas dos cards
+ */
 function updateStats() {
     document.getElementById('totalCursos').textContent = cursos.length;
     document.getElementById('cursosAtivos').textContent = cursos.filter(c => c.status === 'ativo').length;
-
+    console.log("éé")
     if (cursos.length > 0) {
         const lastCourse = cursos[cursos.length - 1];
-        const lastDate = new Date(lastCourse.dataCadastro);
+        const lastDate = new Date(lastCourse.created_at);
         const today = new Date();
         const diffTime = Math.abs(today - lastDate);
         const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-
+        console.log(diffDays)
         if (diffDays === 0) {
             document.getElementById('ultimoCadastro').textContent = 'Hoje';
         } else if (diffDays === 1) {
@@ -115,10 +142,11 @@ function updateStats() {
     }
 }
 
-// Abrir modal
-function openModal() {
-    console.log("Abrindo modal...");
+/**
+ * Abrir modal para novo cadastro
+ */
 
+function openModal() {
     editingId = null;
     document.getElementById('modalTitle').textContent = 'Novo Curso';
     document.getElementById('courseForm').reset();
@@ -126,27 +154,25 @@ function openModal() {
 
     const overlay = document.getElementById('modalOverlay');
     overlay.classList.add('active');
-
-    // Forçar display caso não esteja aparecendo
     overlay.style.display = 'flex';
 
-    // Prevenir scroll do body
     document.body.style.overflow = 'hidden';
-
-    console.log("Modal classes:", overlay.classList);
-    console.log("Modal display:", getComputedStyle(overlay).display);
 }
 
+/**
+ * Fechar modal
+ */
 function closeModal() {
     const overlay = document.getElementById('modalOverlay');
     overlay.classList.remove('active');
     overlay.style.display = 'none';
-
-    // Restaurar scroll
     document.body.style.overflow = 'auto';
 }
-// Salvar curso
-function saveCourse() {
+
+/**
+ * Salvar curso (criar ou editar)
+ */
+async function saveCourse() {
     const nome = document.getElementById('courseName').value.trim();
     const observacao = document.getElementById('courseObservation').value.trim();
 
@@ -155,92 +181,140 @@ function saveCourse() {
         return;
     }
 
-    if (editingId) {
-        // Editar curso existente
-        const index = cursos.findIndex(c => c.id === editingId);
-        cursos[index] = {
-            ...cursos[index],
-            nome: nome,
-            observacao: observacao
-        };
-        showToast('Sucesso', 'Curso atualizado com sucesso!', 'success');
-    } else {
-        // Criar novo curso
-        const newCourse = {
-            id: cursos.length > 0 ? Math.max(...cursos.map(c => c.id)) + 1 : 1,
-            nome: nome,
-            observacao: observacao,
-            dataCadastro: new Date().toISOString().split('T')[0],
-            status: 'ativo'
-        };
-        cursos.push(newCourse);
-        showToast('Sucesso', 'Curso cadastrado com sucesso!', 'success');
+    if (nome.length < 3) {
+        showToast('Erro', 'O nome do curso deve ter no mínimo 3 caracteres', 'error');
+        return;
     }
 
-    closeModal();
-    loadCursos();
-}
+    const saveButton = event.target;
+    saveButton.disabled = true;
+    saveButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Salvando...';
 
-// Editar curso
-function editCourse(id) {
-    const curso = cursos.find(c => c.id === id);
-    if (!curso) return;
+    try {
+        if (editingId) {
+            const response = await apiPut('course/', {
+                id: editingId,
+                name: nome,
+                observation: observacao || null
+            });
 
-    editingId = id;
-    document.getElementById('modalTitle').textContent = 'Editar Curso';
-    document.getElementById('courseId').value = curso.id;
-    document.getElementById('courseName').value = curso.nome;
-    document.getElementById('courseObservation').value = curso.observacao;
-    document.getElementById('modalOverlay').classList.add('active');
-}
+            if (response.success) {
+                showToast('Sucesso', response.message, 'success');
+            }
+        } else {
+            const response = await apiPost('course/', {
+                name: nome,
+                observation: observacao || null
+            });
 
-// Deletar curso
-function deleteCourse(id) {
-    const curso = cursos.find(c => c.id === id);
-    if (!curso) return;
+            if (response.success) {
+                showToast('Sucesso', response.message, 'success');
+            }
+        }
 
-    if (confirm(`Tem certeza que deseja excluir o curso "${curso.nome}"?\n\nEsta ação não pode ser desfeita.`)) {
-        cursos = cursos.filter(c => c.id !== id);
-        showToast('Sucesso', 'Curso excluído com sucesso!', 'success');
-        loadCursos();
+        closeModal();
+        await loadCursos();
+
+    } catch (error) {
+        console.error('Erro ao salvar curso:', error);
+        showToast('Erro', error.message, 'error');
+    } finally {
+        saveButton.disabled = false;
+        saveButton.innerHTML = '<i class="fas fa-save"></i> Salvar Curso';
     }
 }
 
-// Mostrar notificação toast
-function showToast(title, message, type = 'success') {
-    VanillaToasts.create({
-        positionClass: 'topRight',
-        title: title,
-        text: message,
-        type: type,
-        icon: '../../assets/img/icone-tcc.png',
-        timeout: 5000,
-        callback: function () { "" }
-    });
+/**
+ * Editar curso existente
+ */
+async function editCourse(id) {
+    try {
+        const response = await apiGet(`course/${id}`);
+
+        if (response.success) {
+            const curso = response.course;
+
+            editingId = id;
+            document.getElementById('modalTitle').textContent = 'Editar Curso';
+            document.getElementById('courseId').value = curso.id;
+            document.getElementById('courseName').value = curso.name;
+            document.getElementById('courseObservation').value = curso.observation || '';
+
+            const overlay = document.getElementById('modalOverlay');
+            overlay.classList.add('active');
+            overlay.style.display = 'flex';
+            document.body.style.overflow = 'hidden';
+        }
+    } catch (error) {
+        console.error('Erro ao carregar curso:', error);
+        showToast('Erro', 'Não foi possível carregar os dados do curso', 'error');
+    }
 }
 
-// Busca em tempo real
-document.getElementById('searchInput').addEventListener('input', loadCursos);
 
-// Fechar modal ao clicar fora
+/**
+ * Deletar curso
+ */
+async function deleteCourse(id) {
+    const curso = cursos.find(c => c.id === id);
+    if (!curso) return;
+    const courseStatus = curso.status.toLowerCase()=='ativo'
+
+    if (!confirm(`Tem certeza que deseja ${courseStatus?'desativar':'ativar'} o curso "${curso.name}"?`)) {
+        return;
+    }
+
+    try {
+        const response = courseStatus? await apiDelete('course/', { id: id }):await apiPost('course/active', { id: id })
+        if(response.success){
+            showToast('Sucesso', response.message, 'success');
+            await loadCursos();
+        }
+
+    } catch (error) {
+        console.error(`Erro ao ${courseStatus?'desativar':'ativar'} curso:`, error);
+        showToast('Erro', error.message, 'error');
+    }
+}
+
+/**
+ * Buscar cursos com filtros avançados
+ */
+async function searchCoursesAdvanced(filters = {}) {
+    try {
+        const response = await apiPost('course/search', filters);
+
+        if (response.success) {
+            cursos = response.courses;
+        }
+    } catch (error) {
+        console.error('Erro na busca:', error);
+        showToast('Erro', 'Erro ao buscar cursos', 'error');
+    }
+}
+
+
+
+document.getElementById('searchInput').addEventListener('input', () => {
+    clearTimeout(window.searchTimeout);
+    window.searchTimeout = setTimeout(loadCursos, 500);
+});
+
 document.getElementById('modalOverlay').addEventListener('click', (e) => {
     if (e.target.id === 'modalOverlay') {
         closeModal();
     }
 });
 
-// Fechar modal com ESC
 document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') {
         closeModal();
     }
 });
 
-// Salvar com Enter no formulário
 document.getElementById('courseForm').addEventListener('submit', (e) => {
     e.preventDefault();
     saveCourse();
 });
 
-// Carregar cursos ao iniciar
-loadCursos();
+

@@ -1,5 +1,4 @@
 function login(e) {
-
     credenciais = {}
     $(".vanillatoasts-toast").remove()
     let dados_login = $("#form_login").serializeArray()
@@ -35,8 +34,6 @@ function login(e) {
             });
         });
     }
-    // window.location.href = url_base + "views/dashboard/dashboard.php"
-
 }
 $("input").keyup(function (event) {
     if (event.keyCode === 13) {
