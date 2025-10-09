@@ -25,7 +25,6 @@ function valida_form(dados) {
     return true;
 }
 
-
 /**
  * Obter token de autenticação
  */

@@ -101,6 +101,7 @@ include("../generics/sidebar.php");
                 <!-- Dados serão inseridos aqui -->
                 </tbody>
             </table>
+            <div class="pagination" id="pagination"></div>
         </div>
     </div>
     </div>

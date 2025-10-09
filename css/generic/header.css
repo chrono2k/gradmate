@@ -346,12 +346,14 @@ tbody tr {
 }
 
 tbody tr:hover {
-    background: rgba(255, 255, 255, 0.05);
-    transform: scale(1.01);
+    background: rgba(66, 66, 66, 0.1);
+    transform: translateY(-4px);
+
+    /*backdrop-filter: blur(20px);*/
 }
 
 td {
-    padding: 16px;
+    padding: 7px;
     color: var(--black);
     font-size: 0.95rem;
 }
@@ -379,7 +381,7 @@ td {
     backdrop-filter: blur(20px);
     border: 1px solid var(--glass-border);
     border-radius: 12px;
-    color: var(--text-light);
+    color: var(--black);
     font-size: 0.95rem;
     transition: all 0.3s ease;
 }
@@ -400,6 +402,7 @@ td {
     top: 50%;
     transform: translateY(-50%);
     color: var(--black);
+    z-index:200;
 }
 
 .btn {
@@ -796,3 +799,24 @@ td {
     font-size: 1rem;
 }
 
+.pagination {
+    display: flex;
+    padding-left: 0;
+    list-style: none;
+    border-radius: 0.55rem;
+    flex-direction: row;
+    justify-content: flex-end;}
+
+.pagination button {
+    margin: 0 5px;
+    padding: 8px 12px;
+    border: none;
+    background-color: #eee;
+    cursor: pointer;
+    border-radius: 6px;
+}
+
+.pagination button.active {
+    background-color: #6366f1;
+    color: white;
+}

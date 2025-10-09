@@ -1,9 +1,72 @@
 let cursos = [];
 let editingId = null;
+let currentPage = 1;
+const itemsPerPage = 10;
 
 document.addEventListener('DOMContentLoaded', () => {
     loadCursos();
 });
+
+
+function renderCursosTable(filteredCursos) {
+    const tbody = document.getElementById('cursosTableBody');
+    tbody.innerHTML = '';
+
+    const start = (currentPage - 1) * itemsPerPage;
+    const end = start + itemsPerPage;
+    const pageItems = filteredCursos.slice(start, end);
+
+    tbody.innerHTML = pageItems.map(curso => `
+        <tr>
+            <td>
+                <div class="course-name">
+                    <div class="course-icon">${curso.name.substring(0, 2).toUpperCase()}</div>
+                    ${curso.name}
+                </div>
+            </td>
+            <td>
+                <div class="observation" title="${curso.observation || ''}">
+                    ${curso.observation || 'Sem observações'}
+                </div>
+            </td>
+            <td>${formatDate(curso.created_at)}</td>
+            <td>
+                <span class="badge ${curso.status.toLowerCase() === 'ativo' ? 'badge-active' : 'badge-inactive'}">
+                    <i class="fas fa-check-circle"></i> ${curso.status.charAt(0).toUpperCase() + curso.status.slice(1)}
+                </span>
+            </td>
+            <td>
+                <div class="action-buttons">
+                    <button class="btn btn-warning btn-icon" onclick="editCourse(${curso.id})" title="Editar">
+                        <i class="fas fa-edit"></i>
+                    </button>
+                    <button class="btn btn-danger btn-icon" onclick="deleteCourse(${curso.id})" title="Excluir">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
+            </td>
+        </tr>
+    `).join('');
+}
+
+function renderPagination(filteredCursos) {
+    const pagination = document.getElementById('pagination');
+    pagination.innerHTML = '';
+
+    const totalPages = Math.ceil(filteredCursos.length / itemsPerPage);
+
+    for (let i = 1; i <= totalPages; i++) {
+        const btn = document.createElement('button');
+        btn.textContent = i;
+        btn.className = i === currentPage ? 'active' : '';
+        btn.onclick = () => {
+            currentPage = i;
+            renderCursosTable(filteredCursos);
+            renderPagination(filteredCursos);
+        };
+        pagination.appendChild(btn);
+    }
+}
 
 /**
  * Carregar cursos do servidor
@@ -48,43 +111,9 @@ async function loadCursos() {
                 `;
                 return;
             }
-            console.log(filteredCursos)
-            console.log(filteredCursos[0].status.toUpperCase())
-
-            tbody.innerHTML = filteredCursos.map(curso =>
-
-                `
-                <tr>
-                    <td>
-                        <div class="course-name">
-                            <div class="course-icon">${curso.name.substring(0, 2).toUpperCase()}</div>
-                            ${curso.name}
-                        </div>
-                    </td>
-                    <td>
-                        <div class="observation" title="${curso.observation || ''}">
-                            ${curso.observation || 'Sem observações'}
-                        </div>
-                    </td>
-                    <td>${formatDate(curso.created_at)}</td>
-                    <td>
-                        <span class="badge ${curso.status.toLowerCase()=='ativo' ? 'badge-active' : 'badge-inactive'}">
-                            <i class="fas fa-check-circle"></i> ${curso.status.charAt(0).toUpperCase() + curso.status.slice(1)}
-                        </span>
-                    </td>
-                    <td>
-                        <div class="action-buttons">
-                            <button class="btn btn-warning btn-icon" onclick="editCourse(${curso.id})" title="Editar">
-                                <i class="fas fa-edit"></i>
-                            </button>
-                            <button class="btn btn-danger btn-icon" onclick="deleteCourse(${curso.id})" title="Excluir">
-                                <i class="fas fa-trash"></i>
-                            </button>
-                        </div>
-                    </td>
-                </tr>
-            `).join('');
-            updateStats();
+            renderCursosTable(filteredCursos);
+            renderPagination(filteredCursos);
+            updateStats()
         } else {
             throw new Error(response.message || 'Erro ao carregar cursos');
         }
@@ -124,14 +153,15 @@ function formatDate(dateString) {
 function updateStats() {
     document.getElementById('totalCursos').textContent = cursos.length;
     document.getElementById('cursosAtivos').textContent = cursos.filter(c => c.status === 'ativo').length;
-    console.log("éé")
     if (cursos.length > 0) {
         const lastCourse = cursos[cursos.length - 1];
         const lastDate = new Date(lastCourse.created_at);
         const today = new Date();
         const diffTime = Math.abs(today - lastDate);
-        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
         console.log(diffDays)
+        console.log(diffDays)
+        console.log("diff")
         if (diffDays === 0) {
             document.getElementById('ultimoCadastro').textContent = 'Hoje';
         } else if (diffDays === 1) {
