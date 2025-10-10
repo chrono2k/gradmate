@@ -17,12 +17,6 @@ include("../generics/sidebar.php");
 
 <body>
 
-<!--<div id="loading">-->
-<!--    <div class="spinner"></div>-->
-<!--    <p>Aguarde...</p>-->
-<!--</div>-->
-
-
 <main class="main-content" id="mainContent">
 
     <div class="page-header">
@@ -162,5 +156,4 @@ include("../generics/sidebar.php");
 </main>
 </body>
 </html>
-<script src="../../constantes.js?v=<?php echo date('YmdHis'); ?>"></script>
 <script src="../../assets/js/curso/curso.js?v=<?php echo date('YmdHis'); ?>"></script>

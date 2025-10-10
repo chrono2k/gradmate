@@ -16,12 +16,6 @@ include("../generics/sidebar.php");
 
 <body>
 
-<!--<div id="loading">-->
-<!--    <div class="spinner"></div>-->
-<!--    <p>Aguarde...</p>-->
-<!--</div>-->
-<!---->
-
 <main class="main-content" id="mainContent">
 
     <div class="page-header">
@@ -86,20 +80,25 @@ include("../generics/sidebar.php");
             </button>
         </div>
         <div class="table-wrapper">
-            <table id="cursosTable">
+            <table id="studentsTable">
                 <thead>
                 <tr>
                     <th>Nome</th>
+                    <th>Email</th>
                     <th>R.A.</th>
-                    <th>Curso</th>
                     <th>Observação</th>
-                    <th>status</th>
+                    <th>Projetos ativos</th>
+                    <th>Status</th>
+                    <th>Ações</th>
+
                 </tr>
                 </thead>
-                <tbody id="cursosTableBody">
+                <tbody id="studentsTableBody">
                 <!-- Dados serão inseridos aqui -->
                 </tbody>
             </table>
+            <div class="pagination" id="pagination"></div>
+
         </div>
     </div>
     </div>
@@ -110,37 +109,61 @@ include("../generics/sidebar.php");
             <div class="modal-header">
                 <h3>
                     <i class="fas fa-graduation-cap"></i>
-                    <span id="modalTitle">Novo Curso</span>
+                    <span id="modalTitle">Novo Aluno</span>
                 </h3>
                 <button class="modal-close" onclick="closeModal()">
                     <i class="fas fa-times"></i>
                 </button>
             </div>
             <div class="modal-body">
-                <form id="courseForm">
-                    <input type="hidden" id="courseId">
+                <form id="studentForm">
+                    <input type="hidden" id="studentId">
 
                     <div class="form-group">
-                        <label for="courseName">
+                        <label for="studentName">
                             <i class="fas fa-book"></i>
-                            Nome do Curso
+                            Nome do Aluno
                         </label>
                         <input
                                 type="text"
-                                id="courseName"
-                                placeholder="Ex: Análise e Desenvolvimento de Sistemas"
+                                id="studentName"
+                                placeholder="Informe o nome do aluno a ser cadastrado"
+                                required
+                        >
+                    </div>
+                    <div class="form-group">
+                        <label for="studentEmail">
+                            <i class="fas fa-book"></i>
+                            Email
+                        </label>
+                        <input
+                                type="text"
+                                id="studentEmail"
+                                placeholder="Email que será utilizado para logar no sistema"
+                                required
+                        >
+                    </div>
+                    <div class="form-group">
+                        <label for="studentRegistration">
+                            <i class="fas fa-book"></i>
+                            RA
+                        </label>
+                        <input
+                                type="text"
+                                id="studentRegistration"
+                                placeholder="RA do aluno"
                                 required
                         >
                     </div>
 
                     <div class="form-group">
-                        <label for="courseObservation">
+                        <label for="studentObservation">
                             <i class="fas fa-comment-alt"></i>
                             Observação
                         </label>
                         <textarea
-                                id="courseObservation"
-                                placeholder="Adicione detalhes, informações importantes ou observações sobre o curso..."
+                                id="studentObservation"
+                                placeholder="Adicione detalhes, informações importantes ou observações sobre o aluno..."
                         ></textarea>
                     </div>
                 </form>
@@ -150,9 +173,9 @@ include("../generics/sidebar.php");
                     <i class="fas fa-times"></i>
                     Cancelar
                 </button>
-                <button class="btn btn-success" onclick="saveCourse()">
+                <button class="btn btn-success" onclick="saveStudent()">
                     <i class="fas fa-save"></i>
-                    Salvar Curso
+                    Salvar Aluno
                 </button>
             </div>
         </div>

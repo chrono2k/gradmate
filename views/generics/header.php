@@ -34,6 +34,8 @@
     </div>
 </header>
 
+
+<script src="../../constantes.js?v=<?php echo date('YmdHis'); ?>"></script>
 <script src="../../assets/js/generics/header.js?v=<?php echo date('YmdHis'); ?>"></script>
 <script src="../../assets/libs/Izitoast/iziToast-master/dist/js/iziToast.min.js"></script>
 <script src="../../assets/js/generics/funcoes_auxiliares.js?v=<?php echo date('YmdHis'); ?>"></script>

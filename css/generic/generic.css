@@ -24,7 +24,6 @@ body::before {
 
 @import url("https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@300;400;600;700&display=swap");
 :root {
-    --garen: #203155;
     --blue: #0056B3;
     --indigo: #6610f2;
     --purple: #6f42c1;

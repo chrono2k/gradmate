@@ -16,12 +16,6 @@ include("../generics/sidebar.php");
 
 <body>
 
-<!--<div id="loading">-->
-<!--    <div class="spinner"></div>-->
-<!--    <p>Aguarde...</p>-->
-<!--</div>-->
-
-
 <main class="main-content" id="mainContent">
     <div class="page-header">
         <h1>
@@ -92,7 +86,7 @@ include("../generics/sidebar.php");
                     <th>Status</th>
                 </tr>
                 </thead>
-                <tbody id="professoresTableBody">
+                <tbody id="projectTableBody">
                 <!-- Dados serão inseridos aqui -->
                 </tbody>
             </table>

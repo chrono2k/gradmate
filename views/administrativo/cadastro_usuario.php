@@ -16,12 +16,6 @@ include("../generics/sidebar.php");
 
 <body>
 
-<!--<div id="loading">-->
-<!--    <div class="spinner"></div>-->
-<!--    <p>Aguarde...</p>-->
-<!--</div>-->
-
-
 <main class="main-content" id="mainContent">
     <div id="conteudo_pagina">
         <div class="row justify-content-center">

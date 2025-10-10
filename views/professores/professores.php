@@ -16,12 +16,6 @@ include("../generics/sidebar.php");
 
 <body>
 
-<!--<div id="loading">-->
-<!--    <div class="spinner"></div>-->
-<!--    <p>Aguarde...</p>-->
-<!--</div>-->
-
-
 <main class="main-content" id="mainContent">
 
     <div class="page-header">
@@ -50,7 +44,7 @@ include("../generics/sidebar.php");
                 <i class="fas fa-list"></i>
                 Lista de Professores
             </h2>
-            <button class="btn btn-secondary btn-icon" onclick="loadProfessor()" title="Atualizar">
+            <button class="btn btn-secondary btn-icon" onclick="loadTeacher()" title="Atualizar">
                 <i class="fas fa-sync-alt"></i>
             </button>
         </div>
@@ -59,14 +53,18 @@ include("../generics/sidebar.php");
                 <thead>
                 <tr>
                     <th>Nome</th>
-                    <th>Cursos</th>
+                    <th>Email</th>
                     <th>Observação</th>
+                    <th>Projetos ativos</th>
+                    <th>Status</th>
+                    <th>Ações</th>
                 </tr>
                 </thead>
-                <tbody id="professoresTableBody">
+                <tbody id="teachersTableBody">
                 <!-- Dados serão inseridos aqui -->
                 </tbody>
             </table>
+            <div class="pagination" id="pagination"></div>
         </div>
     </div>
     </div>
@@ -77,37 +75,49 @@ include("../generics/sidebar.php");
             <div class="modal-header">
                 <h3>
                     <i class="fas fa-graduation-cap"></i>
-                    <span id="modalTitle">Novo Curso</span>
+                    <span id="modalTitle">Novo Professor</span>
                 </h3>
                 <button class="modal-close" onclick="closeModal()">
                     <i class="fas fa-times"></i>
                 </button>
             </div>
             <div class="modal-body">
-                <form id="courseForm">
-                    <input type="hidden" id="courseId">
+                <form id="teacherForm">
+                    <input type="hidden" id="teacherId">
 
                     <div class="form-group">
-                        <label for="courseName">
+                        <label for="teacherName">
                             <i class="fas fa-book"></i>
-                            Nome do Curso
+                            Nome
                         </label>
                         <input
                                 type="text"
-                                id="courseName"
-                                placeholder="Ex: Análise e Desenvolvimento de Sistemas"
+                                id="teacherName"
+                                placeholder="Informe o nome do professor a ser cadastrado"
+                                required
+                        >
+                    </div>
+                    <div class="form-group">
+                        <label for="teacherEmail">
+                            <i class="fas fa-book"></i>
+                            Email
+                        </label>
+                        <input
+                                type="text"
+                                id="teacherEmail"
+                                placeholder="Email que será utilizado para logar no sistema"
                                 required
                         >
                     </div>
 
                     <div class="form-group">
-                        <label for="courseObservation">
+                        <label for="teacherObservation">
                             <i class="fas fa-comment-alt"></i>
                             Observação
                         </label>
                         <textarea
-                                id="courseObservation"
-                                placeholder="Adicione detalhes, informações importantes ou observações sobre o curso..."
+                                id="teacherObservation"
+                                placeholder="Adicione detalhes, informações importantes ou observações sobre o professor..."
                         ></textarea>
                     </div>
                 </form>
@@ -117,9 +127,9 @@ include("../generics/sidebar.php");
                     <i class="fas fa-times"></i>
                     Cancelar
                 </button>
-                <button class="btn btn-success" onclick="saveCourse()">
+                <button class="btn btn-success" onclick="saveTeacher()">
                     <i class="fas fa-save"></i>
-                    Salvar Curso
+                    Salvar Professor
                 </button>
             </div>
         </div>
@@ -127,4 +137,4 @@ include("../generics/sidebar.php");
 </main>
 </body>
 </html>
-<script src="../../assets/js/dashboard/dashboard.js?v=<?php echo date('YmdHis'); ?>"></script>
+<script src="../../assets/js/professores/professores.js?v=<?php echo date('YmdHis'); ?>"></script>
