@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>GradMate</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <link rel="stylesheet" href="../../css/dashboard/dashboard.css?v=<?php echo date('YmdHis'); ?>">
+    <link rel="stylesheet" href="../../css/projetos/projetos.css?v=<?php echo date('YmdHis'); ?>">
     <style>
     </style>
 </head>
@@ -29,7 +29,7 @@ include("../generics/sidebar.php");
                 <i class="fas fa-user"></i>
             </div>
             <div class="stat-info">
-                <h3 id="totalAlunos">0</h3>
+                <h3 id="totalProjects">0</h3>
                 <p>Total de Projetos</p>
             </div>
         </div>
@@ -38,7 +38,7 @@ include("../generics/sidebar.php");
                 <i class="fas fa-check-circle"></i>
             </div>
             <div class="stat-info">
-                <h3 id="alunosFormados">0</h3>
+                <h3 id="noPendencyProjects">0</h3>
                 <p>Projetos sem pendencia</p>
             </div>
         </div>
@@ -47,7 +47,7 @@ include("../generics/sidebar.php");
                 <i class="fa-solid fa-exclamation"></i>
             </div>
             <div class="stat-info">
-                <h3 id="alunosComPendencia">5</h3>
+                <h3 id="pendencyProjects">5</h3>
                 <p>Projetos com pendencias</p>
             </div>
         </div>
@@ -72,16 +72,17 @@ include("../generics/sidebar.php");
                 <i class="fas fa-list"></i>
                 Lista de Projetos
             </h2>
-            <button class="btn btn-secondary btn-icon" onclick="loadProfessor()" title="Atualizar">
+            <button class="btn btn-secondary btn-icon" onclick="loadProject()" title="Atualizar">
                 <i class="fas fa-sync-alt"></i>
             </button>
         </div>
         <div class="table-wrapper">
-            <table id="professoresTable">
+            <table id="projectTable">
                 <thead>
                 <tr>
                     <th>Nome</th>
                     <th>Cursos</th>
+                    <th>Descrição</th>
                     <th>Observação</th>
                     <th>Status</th>
                 </tr>
@@ -90,6 +91,8 @@ include("../generics/sidebar.php");
                 <!-- Dados serão inseridos aqui -->
                 </tbody>
             </table>
+            <div class="pagination" id="pagination"></div>
+
         </div>
     </div>
     </div>
@@ -100,7 +103,7 @@ include("../generics/sidebar.php");
             <div class="modal-header">
                 <h3>
                     <i class="fas fa-graduation-cap"></i>
-                    <span id="modalTitle">Novo Curso</span>
+                    <span id="modalTitle">Novo Projeto</span>
                 </h3>
                 <button class="modal-close" onclick="closeModal()">
                     <i class="fas fa-times"></i>
@@ -108,16 +111,16 @@ include("../generics/sidebar.php");
             </div>
             <div class="modal-body">
                 <form id="courseForm">
-                    <input type="hidden" id="courseId">
+                    <input type="hidden" id="projectId">
 
                     <div class="form-group">
-                        <label for="courseName">
+                        <label for="projectName">
                             <i class="fas fa-book"></i>
-                            Nome do Curso
+                            Nome do projeto
                         </label>
                         <input
                                 type="text"
-                                id="courseName"
+                                id="projectName"
                                 placeholder="Ex: Análise e Desenvolvimento de Sistemas"
                                 required
                         >
@@ -150,4 +153,4 @@ include("../generics/sidebar.php");
 </main>
 </body>
 </html>
-<script src="../../assets/js/dashboard/dashboard.js?v=<?php echo date('YmdHis'); ?>"></script>
+<script src="../../assets/js/projetos/projetos.js?v=<?php echo date('YmdHis'); ?>"></script>
