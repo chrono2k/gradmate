@@ -61,17 +61,7 @@
                 </li>
             </ul>
         </div>
-        <div class="nav-section">
-            <div class="nav-section-title">Configuração</div>
-            <ul class="nav-list">
-                <li class="nav-item">
-                    <a href="#" class="nav-link">
-                        <i class="fa-solid fa-key"></i>
-                        <span>Alterar senha</span>
-                    </a>
-                </li>
-            </ul>
-        </div>
+        
 
         <div class="nav-section">
             <div class="nav-section-title">Administração</div>

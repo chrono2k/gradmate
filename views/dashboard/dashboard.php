@@ -6,6 +6,8 @@
     <title>GradMate</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link rel="stylesheet" href="../../css/dashboard/dashboard.css?v=<?php echo date('YmdHis'); ?>">
+    <!-- jsPDF para geração de PDF do calendário -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 </head>
 <?php
 include("../generics/header.php");
@@ -95,6 +97,13 @@ include("../generics/sidebar.php");
                     </button>
                     <button class="nav-btn" onclick="nextYear()">
                         <i class="fas fa-chevron-right"></i>
+                    </button>
+                    <select id="semesterSelect" class="nav-btn" style="width:auto;padding:0 10px;cursor:pointer;background: #ffffff;color:#1e293b;border: 2px solid #e2e8f0;">
+                        <option value="1">1º semestre</option>
+                        <option value="2" selected>2º semestre</option>
+                    </select>
+                    <button class="nav-btn" title="Baixar calendário do semestre" onclick="downloadSemester()">
+                        <i class="fa-solid fa-download"></i>
                     </button>
                 </div>
             </div>

@@ -213,10 +213,6 @@ include("../generics/sidebar.php");
                             <i class="fas fa-bell"></i>
                             Gerar Aviso para Banca
                         </button>
-                        <button id="btnGenerateCertificate" class="btn btn-warning" onclick="generateOrientadorCertificate()" style="display:none;">
-                            <i class="fas fa-certificate"></i>
-                            Gerar Certificado Orientador
-                        </button>
                     </div>
                 </div>
             </div>

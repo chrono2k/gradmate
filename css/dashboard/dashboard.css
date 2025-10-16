@@ -244,6 +244,17 @@ body {
     font-size: 0.9rem;
 }
 
+.legend-item .legend-editable {
+    border-bottom: 1px dashed rgba(0,0,0,0.25);
+    cursor: text;
+}
+
+.legend-item .legend-editable[contenteditable="true"] {
+    background: rgba(59, 130, 246, 0.08);
+    outline: 1px dashed rgba(59, 130, 246, 0.6);
+    border-radius: 4px;
+}
+
 .legend-dot {
     width: 16px;
     height: 16px;
@@ -395,10 +406,7 @@ body {
     box-shadow: 0 4px 12px rgba(99, 102, 241, 0.2);
 }
 
-.day-cell.has-status {
-    /*color: white;*/
-    /*border: none;*/
-}
+
 
 .day-cell.status-1 {
     background: linear-gradient(135deg, rgba(59, 130, 246, 0.42), rgba(37, 99, 235, 0.42));

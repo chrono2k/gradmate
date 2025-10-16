@@ -172,7 +172,9 @@ function openModal() {
     editingId = null;
     document.getElementById('modalTitle').textContent = 'Novo Projeto';
     document.getElementById('courseForm').reset();
-    document.getElementById('courseId').value = '';
+    // Align with DOM: hidden input is 'projectId'
+    const hiddenId = document.getElementById('projectId');
+    if (hiddenId) hiddenId.value = '';
 
     const overlay = document.getElementById('modalOverlay');
     overlay.classList.add('active');
@@ -195,8 +197,12 @@ function closeModal() {
  * Salvar projeto (criar ou editar)
  */
 async function saveCourse() {
-    const nome = document.getElementById('courseName').value.trim();
-    const observacao = document.getElementById('courseObservation').value.trim();
+    // Align field IDs with DOM structure in views/projeto/projetos.php
+    const nameInput = document.getElementById('projectName');
+    const obsInput = document.getElementById('courseObservation');
+
+    const nome = (nameInput?.value || '').trim();
+    const observacao = (obsInput?.value || '').trim();
 
     if (!nome) {
         showToast('Erro', 'Por favor, preencha o nome do projeto', 'error');
@@ -214,23 +220,25 @@ async function saveCourse() {
 
     try {
         if (editingId) {
-            const response = await apiPut('course/', {
+            // Update existing project
+            const response = await apiPut('project/', {
                 id: editingId,
                 name: nome,
                 observation: observacao || null
             });
 
             if (response.success) {
-                showToast('Sucesso', response.message, 'success');
+                showToast('Sucesso', response.message || 'Projeto atualizado com sucesso', 'success');
             }
         } else {
-            const response = await apiPost('course/', {
+            // Create new project
+            const response = await apiPost('project/', {
                 name: nome,
                 observation: observacao || null
             });
 
             if (response.success) {
-                showToast('Sucesso', response.message, 'success');
+                showToast('Sucesso', response.message || 'Projeto criado com sucesso', 'success');
             }
         }
 
@@ -241,8 +249,8 @@ async function saveCourse() {
         console.error('Erro ao salvar projeto:', error);
         showToast('Erro', error.message, 'error');
     } finally {
-        saveButton.disabled = false;
-        saveButton.innerHTML = '<i class="fas fa-save"></i> Salvar Projeto';
+    saveButton.disabled = false;
+    saveButton.innerHTML = '<i class="fas fa-save"></i> Salvar Projeto';
     }
 }
 
@@ -324,5 +332,10 @@ document.getElementById('courseForm').addEventListener('submit', (e) => {
     e.preventDefault();
     saveCourse();
 });
+
+// Alias to support the refresh button in the view calling loadProject()
+function loadProject() {
+    return loadProjetos();
+}
 
 
