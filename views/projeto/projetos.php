@@ -82,9 +82,9 @@ include("../generics/sidebar.php");
                 <tr>
                     <th>Nome</th>
                     <th>Cursos</th>
-                    <th>Descrição</th>
+<!--                    <th>Descrição</th>-->
                     <th>Observação</th>
-                    <th>Status</th>
+                    <th>Editar</th>
                 </tr>
                 </thead>
                 <tbody id="projectTableBody">

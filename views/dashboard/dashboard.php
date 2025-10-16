@@ -55,9 +55,54 @@ include("../generics/sidebar.php");
         </div>
     </div>
 
-    <div class="content-card">
-        <h2>coisas</h2>
-        <p>coisas.</p>
+    <div class="container">
+        <div class="legend">
+            <div class="legend-item">
+                <div class="legend-dot status-1"></div>
+                <span>4º. termo - upload do projeto</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-dot status-2"></div>
+                <span>5º. termo - qualificação e apresentação dos pitch</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-dot status-3"></div>
+                <span>6º. termo - entrega dos dados do projeto de graduação</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-dot status-4"></div>
+                <span>6º. termo - Entrega da versão final pelo teams</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-dot status-5"></div>
+                <span>6º. termo - defesa do projeto de graduação</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-dot status-6"></div>
+                <span>6º. termo - entrega da versão corrigida do TCC</span>
+            </div>
+        </div>
+
+        <div class="calendar-wrapper">
+            <div class="calendar-header">
+                <h2 class="calendar-title" id="monthYear"></h2>
+                <div class="nav-buttons">
+                    <button class="nav-btn" onclick="previousYear()">
+                        <i class="fas fa-chevron-left"></i>
+                    </button>
+                    <button class="nav-btn" onclick="currentYear()">
+                        <i class="fas fa-calendar-check"></i>
+                    </button>
+                    <button class="nav-btn" onclick="nextYear()">
+                        <i class="fas fa-chevron-right"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div class="year-calendar" id="yearCalendar"></div>
+
+
+        </div>
     </div>
 
 <!--    <div class="content-card">-->

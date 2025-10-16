@@ -39,10 +39,10 @@ body::before {
     --gray-dark: #525480;
     --primary: rgb(157, 11, 11);
     --secondary: #ff0000;
-    --success: #18634B;
+    --success: rgba(24, 99, 75, 0.28);
     --info: #0056B3;
-    --warning: #F0B400;
-    --danger: #A91E2C;
+    --warning: rgba(240, 180, 0, 0.28);
+    --danger: rgba(169, 30, 44, 0.28);
     --light: #D1D9E6;
     --dark: #31344b;
     --default: #262833;

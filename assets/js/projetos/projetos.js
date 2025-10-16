@@ -16,6 +16,7 @@ function renderProjetosTable(filteredProjetos) {
     const end = start + itemsPerPage;
     const pageItems = filteredProjetos.slice(start, end);
 
+
     tbody.innerHTML = pageItems.map(projeto => `
         <tr>
             <td>
@@ -25,16 +26,19 @@ function renderProjetosTable(filteredProjetos) {
                 </div>
             </td>
             <td>
+                <div class="course" title="${projeto.course?.name || ''}">
+                    ${projeto.course?.name || 'Sem Curso'}
+                </div>
+            </td>
+<!--            <td>-->
+<!--                <div class="description" title="${projeto.description || ''}">-->
+<!--                    ${projeto.description || 'Sem descrição'}-->
+<!--                </div>-->
+<!--            </td>-->
+            <td>
                 <div class="observation" title="${projeto.observation || ''}">
                     ${projeto.observation || 'Sem observações'}
                 </div>
-            </td>
-            <td>${formatDate(projeto.created_at)}</td>
-            <td>
-<!--                <span class="badge ${projeto.status.toLowerCase() === 'ativo' ? 'badge-active' : 'badge-inactive'}">-->
-                <span class="badge badge-active">
-                    <i class="fas fa-check-circle"></i> ${projeto.status.charAt(0).toUpperCase() + projeto.status.slice(1)}
-                </span>
             </td>
             <td>
                 <div class="action-buttons">
@@ -247,22 +251,8 @@ async function saveCourse() {
  */
 async function editCourse(id) {
     try {
-        const response = await apiGet(`course/${id}`);
-
-        if (response.success) {
-            const projeto = response.course;
-
-            editingId = id;
-            document.getElementById('modalTitle').textContent = 'Editar Projeto';
-            document.getElementById('courseId').value = projeto.id;
-            document.getElementById('courseName').value = projeto.name;
-            document.getElementById('courseObservation').value = projeto.observation || '';
-
-            const overlay = document.getElementById('modalOverlay');
-            overlay.classList.add('active');
-            overlay.style.display = 'flex';
-            document.body.style.overflow = 'hidden';
-        }
+        window.location.href =
+            url_base + "views/projeto/projeto.php?id_projeto=" + id;
     } catch (error) {
         console.error('Erro ao carregar projeto:', error);
         showToast('Erro', 'Não foi possível carregar os dados do projeto', 'error');
