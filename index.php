@@ -7,9 +7,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="assets/libs/bootstrap/bootstrap-5.3.3-dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="assets/libs/fontawesome-free-6.5.1-web/css/all.css">
-    <link rel="stylesheet" href="css/generic/generic.css?v=<?php echo date('YmdHis'); ?>">
+    <?php include_once(__DIR__ . '/config/config.php'); ?>
+    <link rel="stylesheet" href="css/generic/generic.css<?php echo ver(); ?>">
     <link rel="stylesheet" href="assets/libs/jquery/VanillaToasts/vanillatoasts.css">
-    <link rel="stylesheet" href="css/index.css?v=<?php echo date('YmdHis'); ?>">
+    <link rel="stylesheet" href="css/index.css<?php echo ver(); ?>">
     <title>GradMate</title>
 </head>
 
@@ -66,7 +67,7 @@
 <script src="assets/libs/bootstrap/bootstrap-5.3.3-dist/js/bootstrap.bundle.js"></script>
 <script src="assets/libs/jquery/VanillaToasts/vanillatoasts.js"></script>
 <script src="constantes.js"></script>
-<script src="assets/js/login.js?v=<?php echo date('YmdHis'); ?>"></script>
-<script src="assets/js/generics/funcoes_auxiliares.js?v=<?php echo date('YmdHis'); ?>"></script>
+<script src="assets/js/login.js<?php echo ver(); ?>"></script>
+<script src="assets/js/generics/funcoes_auxiliares.js<?php echo ver(); ?>"></script>
 
 </html>

@@ -5,7 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>GradMate</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <link rel="stylesheet" href="../../css/profess.css?v=<?php echo date('YmdHis'); ?>">
+    <?php include_once(__DIR__ . '/../../config/config.php'); ?>
+    <link rel="stylesheet" href="../../css/profess.css<?php echo ver(); ?>">
     <style>
     </style>
 </head>
@@ -137,4 +138,4 @@ include("../generics/sidebar.php");
 </main>
 </body>
 </html>
-<script src="../../assets/js/professores/professores.js?v=<?php echo date('YmdHis'); ?>"></script>
+<script src="../../assets/js/professores/professores.js<?php echo ver(); ?>"></script>

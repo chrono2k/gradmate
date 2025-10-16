@@ -1,5 +1,6 @@
-<link rel="stylesheet" href="../../css/generic/generic.css?v=<?php echo date('YmdHis'); ?>">
-<link rel="stylesheet" href="../../css/generic/sidebar.css?v=<?php echo date('YmdHis'); ?>">
+<?php include_once(__DIR__ . '/../../config/config.php'); ?>
+<link rel="stylesheet" href="../../css/generic/generic.css<?php echo ver(); ?>">
+<link rel="stylesheet" href="../../css/generic/sidebar.css<?php echo ver(); ?>">
 
 <aside class="sidebar" id="sidebar">
     <div class="sidebar-logo">

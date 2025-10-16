@@ -35,29 +35,24 @@ Projeto de controle de TCC — interface administrativa para gerenciar projetos,
 - Adicionar arquivo de configuração (ex.: `config.php`) para armazenar credenciais de banco, `BASE_URL` e settings de ambiente.
 - Verificar que sessões e controle de acesso estejam configurados (não presente nas views fornecidas).
 
-## Boas práticas e próximas melhorias
+## Boas práticas e melhorias aplicadas
 
-- Evitar usar cache-busting com `date('YmdHis')` em produção — isso força recarregamento a cada request. Use versões estáticas ou hashes no build.
-- Remover duplicação de includes (alguns CSS/JS são incluídos múltiplas vezes entre `header.php` e views).
-- Usar `htmlspecialchars()` quando imprimir dados do banco nas views para evitar XSS.
-- Gerenciar dependências via Composer (PHP) e npm (JS) em vez de copiar libs manualmente.
-- Considerar migração para um micro-framework (Slim/Lumen) ou usar templates (Twig) para separar lógica e view.
-- Adicionar `.gitignore` para evitar commitar libs grandes e arquivos sensíveis.
+- Versão de assets centralizada: criado `config/config.php` com `ASSET_VERSION` e helper `ver()`. Em produção, use versão estática (ex.: `1.0.0`) em vez de `date('YmdHis')`.
+	- Exemplo: `<link rel="stylesheet" href="/css/app.css<?php echo ver(); ?>">`
+- Includes centralizados: views passam a incluir `config/config.php` e usar o helper de versão; removida duplicação entre `header.php` e `sidebar.php`.
+- Escape de saída: helper `e()` criado (atalho para `htmlspecialchars`) e aplicado onde há valores dinâmicos exibidos.
+- Dependências: recomendo gerenciar via Composer/npm (ainda não migrado neste commit, mas `.gitignore` já cobre `vendor/` e `node_modules/`).
+- Roadmap: avaliar micro-framework (Slim/Lumen) ou template engine (Twig) para melhor separação de responsabilidades.
 
 ## Desenvolvimento e troubleshooting
 
 - Linter/formatadores sugeridos: PHP CS Fixer, ESLint.
 - Para depurar erros PHP, ative `display_errors` em ambiente de desenvolvimento e configure `error_reporting(E_ALL)`.
 
-## Contato
+### Variáveis de ambiente
+- `APP_ENV=production|development` (opcional; padrão: development)
+- `APP_VERSION=1.0.0` (opcional; controla o sufixo de versão dos assets)
 
-Se quiser, eu posso:
-- Criar `.gitignore` e um `README` mais detalhado com exemplos de DB/seed.
-- Centralizar includes e remover duplicações.
-- Adicionar verificações de segurança básicas nas views.
-
-
-Gerado automaticamente — posso adaptar o README com informações do banco de dados, rotas e setup de ambiente se você me passar os detalhes.
 
 ## Documentação detalhada
 
