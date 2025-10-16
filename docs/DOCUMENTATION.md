@@ -140,8 +140,7 @@ Arquivos do Projeto
 - Token inválido/expirado: o helper apenas propaga erro; tratar redirecionamento para login conforme necessidade
 
 ---
-Se quiser, posso detalhar endpoints exatos da sua API (exemplos de request/response) e diagramas de fluxo, basta me passar o contrato atual do backend.
-
+Para aprofundar, inclua exemplos de request/response da sua API e atualize os contratos conforme o backend.
 ---
 
 # Manual de Uso (Passo a passo)
