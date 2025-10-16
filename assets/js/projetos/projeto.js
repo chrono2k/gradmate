@@ -6,6 +6,7 @@ let allStudents = [];
 let allCourses = [];
 let selectedTeachers = [];
 let selectedStudents = [];
+let selectedGuests = [];
 let editingReportId = null;
 
 // Inicialização
@@ -15,6 +16,10 @@ document.addEventListener('DOMContentLoaded', () => {
     loadTeachers();
     loadStudents();
     loadCourses();
+    loadProjectFiles();
+    // Fecha avançados por padrão
+    const adv = document.getElementById('reportAdvanced');
+    if (adv) adv.classList.remove('open');
 });
 
 // Carregar dados do projeto
@@ -47,6 +52,14 @@ function renderProjectData() {
     const statusBadge = document.getElementById('projectStatus');
     statusBadge.className = 'status-badge ' + projectData.status.toLowerCase().replace(' ', '-');
 
+    // Mostrar botão de gerar PDF se status for Defesa ou Concluído
+    const btnPDF = document.getElementById('btnGeneratePDF');
+    if (btnPDF && (projectData.status === 'Defesa' || projectData.status === 'Concluído')) {
+        btnPDF.style.display = 'inline-flex';
+    } else if (btnPDF) {
+        btnPDF.style.display = 'none';
+    }
+
     // Render course
     if (projectData.course) {
         renderCourse(projectData.course);
@@ -58,8 +71,144 @@ function renderProjectData() {
     // Render students
     renderStudentsList(projectData.students || []);
 
+    // Render guests
+    renderGuestsList(projectData.guests || []);
+
     // Render reports
     renderReports(projectData.reports || []);
+}
+
+// ========================= Arquivos do Projeto =========================
+async function loadProjectFiles() {
+    const list = document.getElementById('projectFilesList');
+    if (!list) return;
+    if (!PROJECT_ID) {
+        list.innerHTML = '<div class="empty-state"><i class="fas fa-info-circle"></i><p>Abra um projeto válido para ver arquivos</p></div>';
+        return;
+    }
+    list.innerHTML = `
+        <div class="loading">
+            <p>Carregando arquivos...</p>
+        </div>
+    `;
+
+    try {
+        const resp = await apiGet(`project/${PROJECT_ID}/files`);
+        const files = resp.files || resp || [];
+        if (!files.length) {
+            list.innerHTML = '<div class="empty-state"><i class="fas fa-folder-open"></i><p>Nenhum arquivo enviado</p></div>';
+            return;
+        }
+
+        list.innerHTML = files.map(f => {
+            const fname = f.original_name || f.filename || f.name || f.file_name || 'Arquivo';
+            const fsize = Number(f.size || f.file_size || 0);
+            const fdate = f.created_at || f.uploaded_at || f.createdAt || f.updated_at || null;
+            return `
+            <div class="member-item" style="align-items:center;">
+                <div class="member-avatar" style="width:40px; height:40px;">
+                    <i class="fas fa-file" style="font-size:16px;"></i>
+                </div>
+                <div class="member-info" style="flex:1;">
+                    <div class="member-name" title="${fname}">${fname}</div>
+                    <div class="member-detail">${formatBytes(fsize)} • ${formatDateTime(fdate)}</div>
+                </div>
+                <div style="display:flex; gap:8px;">
+                    <button class="btn btn-secondary btn-icon" title="Download" onclick="downloadProjectFile(${f.id})">
+                        <i class="fas fa-download"></i>
+                    </button>
+                    <button class="btn btn-danger btn-icon" title="Excluir" onclick="deleteProjectFile(${f.id})">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
+            </div>`;
+        }).join('');
+    } catch (e) {
+        // Tratar como vazio quando API ainda não tem endpoint/retorna 404
+        console.warn('Arquivos do projeto não disponíveis ou ainda não enviados. Exibindo estado vazio.', e?.message || e);
+        list.innerHTML = '<div class="empty-state"><i class="fas fa-folder-open"></i><p>Nenhum arquivo enviado</p></div>';
+    }
+}
+
+async function uploadProjectFiles() {
+    const input = document.getElementById('projectFilesInput');
+    if (!input || !input.files || !input.files.length) {
+        return showToast('Selecione um ou mais arquivos para enviar', 'error');
+    }
+
+    const formData = new FormData();
+    for (const file of input.files) {
+        if (!validateFile(file)) {
+            return; // Mensagem já exibida
+        }
+        formData.append('files[]', file);
+    }
+
+    try {
+        const resp = await apiUpload(`project/${PROJECT_ID}/files`, formData);
+        if (resp.success) {
+            showToast('Arquivos enviados com sucesso!', 'success');
+            input.value = '';
+            await loadProjectFiles();
+        } else {
+            throw new Error(resp.message || 'Falha no upload');
+        }
+    } catch (e) {
+        console.error('Upload falhou', e);
+        showToast(e.message || 'Erro ao enviar arquivos', 'error');
+    }
+}
+
+async function downloadProjectFile(fileId) {
+    try {
+        await apiDownload(`project/${PROJECT_ID}/files/${fileId}/download`);
+    } catch (e) {
+        console.error('Erro no download', e);
+        showToast('Não foi possível baixar o arquivo', 'error');
+    }
+}
+
+async function deleteProjectFile(fileId) {
+    if (!confirm('Tem certeza que deseja excluir este arquivo?')) return;
+    try {
+        const resp = await apiDelete(`project/${PROJECT_ID}/files/${fileId}`, {});
+        if (resp.success) {
+            showToast('Arquivo excluído', 'success');
+            await loadProjectFiles();
+        } else {
+            throw new Error(resp.message || 'Erro ao excluir arquivo');
+        }
+    } catch (e) {
+        console.error('Erro ao excluir', e);
+        showToast('Não foi possível excluir o arquivo', 'error');
+    }
+}
+
+function validateFile(file) {
+    const allowed = ['pdf','doc','docx','xls','xlsx','ppt','pptx','txt','png','jpg','jpeg'];
+    const ext = (file.name.split('.').pop() || '').toLowerCase();
+    const maxSize = 10 * 1024 * 1024; // 10MB
+    if (!allowed.includes(ext)) {
+        showToast(`Formato não permitido: ${ext}`, 'error');
+        return false;
+    }
+    if (file.size > maxSize) {
+        showToast(`Arquivo muito grande: ${file.name}`, 'error');
+        return false;
+    }
+    return true;
+}
+
+function formatBytes(bytes) {
+    if (!bytes) return '0 B';
+    const sizes = ['B', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(1024));
+    return `${(bytes / Math.pow(1024, i)).toFixed(1)} ${sizes[i]}`;
+}
+
+function formatDateTime(dt) {
+    if (!dt) return '';
+    try { return new Date(dt).toLocaleString('pt-BR'); } catch { return dt; }
 }
 
 // Renderizar curso
@@ -123,6 +272,31 @@ function renderStudentsList(students) {
             `).join('');
 }
 
+// Renderizar lista de convidados/banca
+function renderGuestsList(guests) {
+    const container = document.getElementById('guestsList');
+
+    if (!guests || guests.length === 0) {
+        container.innerHTML = '<div class="empty-state"><i class="fas fa-user-slash"></i><p>Nenhum convidado adicionado</p></div>';
+        return;
+    }
+
+    container.innerHTML = guests.map(guest => `
+                <div class="member-item">
+                    <div class="member-avatar">
+                        ${guest.image ? `<img src="${guest.image}" alt="${guest.name}">` : guest.name.substring(0, 2).toUpperCase()}
+                    </div>
+                    <div class="member-info">
+                        <div class="member-name">${guest.name}</div>
+                        ${guest.observation ? `<div class="member-detail">${guest.observation}</div>` : '<div class="member-detail">Membro da banca</div>'}
+                    </div>
+                    <button class="btn btn-danger btn-icon" onclick="removeGuest(${guest.id})" title="Remover">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
+            `).join('');
+}
+
 // Renderizar relatórios
 function renderReports(reports) {
     const container = document.getElementById('chatMessages');
@@ -132,29 +306,36 @@ function renderReports(reports) {
         return;
     }
 
-    container.innerHTML = reports.map(report => `
-                <div class="report-message ${report.status}" onclick="editReport(${report.id})">
-                    <div class="report-header">
-                        <div class="report-author">
-                            <i class="fas fa-user-circle"></i>
-                            ${report.teacher ? report.teacher.name : 'Sistema'}
-                        </div>
-                        <div class="report-date">
-                            ${new Date(report.created_at || Date.now()).toLocaleString('pt-BR')}
-                        </div>
-                    </div>
-                    <div class="report-content">
-                        <strong>Descrição:</strong> ${report.description}<br>
-                        ${report.pendency ? `<strong>Pendências:</strong> ${report.pendency}<br>` : ''}
-                        ${report.next_steps ? `<strong>Próximos Passos:</strong> ${report.next_steps}<br>` : ''}
-                        ${report.local ? `<strong>Local:</strong> ${report.local}<br>` : ''}
-                        ${report.feedback ? `<strong>Feedback:</strong> ${report.feedback}` : ''}
-                    </div>
-                    <div class="report-footer">
-                        <span class="report-tag ${report.status}">${report.status.toUpperCase()}</span>
-                    </div>
+    container.innerHTML = reports.map(report => {
+        const when = new Date(report.created_at || Date.now()).toLocaleString('pt-BR');
+        const teacherName = report.teacher ? report.teacher.name : 'Sistema';
+        return `
+        <div class="report-message ${report.status}">
+            <div class="report-header">
+                <div class="report-author">
+                    <i class="fas fa-user-circle"></i>
+                    ${teacherName}
                 </div>
-            `).join('');
+                <div class="report-date">${when}</div>
+            </div>
+            <div class="report-content">
+                <div class="report-field">
+                    <i class="fas fa-align-left"></i>
+                    <div><span class="report-label">Descrição:</span> ${report.description || ''}</div>
+                </div>
+                ${report.pendency ? `<div class="report-field"><i class=\"fas fa-list-check\"></i><div><span class=\"report-label\">Pendências:</span> ${report.pendency}</div></div>` : ''}
+                ${report.next_steps ? `<div class=\"report-field\"><i class=\"fas fa-forward\"></i><div><span class=\"report-label\">Próximos Passos:</span> ${report.next_steps}</div></div>` : ''}
+                ${report.local ? `<div class=\"report-field\"><i class=\"fas fa-location-dot\"></i><div><span class=\"report-label\">Local:</span> ${report.local}</div></div>` : ''}
+                ${report.feedback ? `<div class=\"report-field\"><i class=\"fas fa-comment-dots\"></i><div><span class=\"report-label\">Feedback:</span> ${report.feedback}</div></div>` : ''}
+            </div>
+            <div class="report-footer">
+                <span class="report-tag ${report.status}">${report.status.toUpperCase()}</span>
+                <div class="report-actions">
+                    <button class="btn btn-warning btn-icon" title="Editar" onclick="editReport(${report.id})"><i class="fas fa-edit"></i></button>
+                </div>
+            </div>
+        </div>`;
+    }).join('');
 
     // Scroll to bottom
     container.scrollTop = container.scrollHeight;
@@ -202,27 +383,42 @@ function openAddTeacherModal() {
     const currentTeacherIds = (projectData?.teachers || []).map(t => t.id);
     const availableTeachers = allTeachers.filter(t => !currentTeacherIds.includes(t.id));
 
-    const container = document.getElementById('teachersSelectList');
-
-    if (availableTeachers.length === 0) {
-        container.innerHTML = '<div class="empty-state"><i class="fas fa-info-circle"></i><p>Todos os professores já foram adicionados</p></div>';
-    } else {
-        container.innerHTML = availableTeachers.map(teacher => `
-                    <div class="select-item" onclick="toggleTeacherSelection(${teacher.id})">
-                        <div style="display: flex; align-items: center; gap: 12px;">
-                            <div class="member-avatar" style="width: 40px; height: 40px; font-size: 0.9rem;">
-                                ${teacher.image ? `<img src="${teacher.image}" alt="${teacher.name}">` : teacher.name.substring(0, 2).toUpperCase()}
-                            </div>
-                            <div>
-                                <div style="color: var(--text-light); font-weight: 600;">${teacher.name}</div>
-                                ${teacher.observation ? `<div style="color: var(--text-gray); font-size: 0.85rem;">${teacher.observation}</div>` : ''}
-                            </div>
-                        </div>
-                    </div>
-                `).join('');
-    }
-
+    renderTeacherSelectList(availableTeachers);
+    const input = document.getElementById('teacherSearchInput');
+    if (input) input.value = '';
+    input?.focus();
     openModal('modalAddTeacher');
+}
+
+function renderTeacherSelectList(teachers) {
+    const container = document.getElementById('teachersSelectList');
+    if (!teachers || teachers.length === 0) {
+        container.innerHTML = '<div class="empty-state"><i class="fas fa-info-circle"></i><p>Nenhum professor disponível</p></div>';
+        return;
+    }
+    container.innerHTML = teachers.map(teacher => `
+        <div class="select-item" onclick="toggleTeacherSelection(${teacher.id})">
+            <div style="display: flex; align-items: center; gap: 12px;">
+                <div class="member-avatar" style="width: 40px; height: 40px; font-size: 0.9rem;">
+                    ${teacher.image ? `<img src="${teacher.image}" alt="${teacher.name}">` : teacher.name.substring(0, 2).toUpperCase()}
+                </div>
+                <div>
+                    <div style="color: var(--text-light); font-weight: 600;">${teacher.name}</div>
+                    ${teacher.observation ? `<div style="color: var(--text-gray); font-size: 0.85rem;">${teacher.observation}</div>` : ''}
+                </div>
+            </div>
+        </div>`).join('');
+}
+
+function filterTeacherList() {
+    const q = (document.getElementById('teacherSearchInput')?.value || '').toLowerCase();
+    const currentTeacherIds = (projectData?.teachers || []).map(t => t.id);
+    const base = allTeachers.filter(t => !currentTeacherIds.includes(t.id));
+    const filtered = q ? base.filter(t =>
+        (t.name || '').toLowerCase().includes(q) ||
+        (t.observation || '').toLowerCase().includes(q)
+    ) : base;
+    renderTeacherSelectList(filtered);
 }
 
 // Abrir modal de adicionar aluno
@@ -231,27 +427,42 @@ function openAddStudentModal() {
     const currentStudentIds = (projectData?.students || []).map(s => s.id);
     const availableStudents = allStudents.filter(s => !currentStudentIds.includes(s.id));
 
-    const container = document.getElementById('studentsSelectList');
-
-    if (availableStudents.length === 0) {
-        container.innerHTML = '<div class="empty-state"><i class="fas fa-info-circle"></i><p>Todos os alunos já foram adicionados</p></div>';
-    } else {
-        container.innerHTML = availableStudents.map(student => `
-                    <div class="select-item" onclick="toggleStudentSelection(${student.id})">
-                        <div style="display: flex; align-items: center; gap: 12px;">
-                            <div class="member-avatar" style="width: 40px; height: 40px; font-size: 0.9rem;">
-                                ${student.image ? `<img src="${student.image}" alt="${student.name}">` : student.name.substring(0, 2).toUpperCase()}
-                            </div>
-                            <div>
-                                <div style="color: var(--text-light); font-weight: 600;">${student.name}</div>
-                                <div style="color: var(--text-gray); font-size: 0.85rem;">Matrícula: ${student.registration || 'N/A'}</div>
-                            </div>
-                        </div>
-                    </div>
-                `).join('');
-    }
-
+    renderStudentSelectList(availableStudents);
+    const input = document.getElementById('studentSearchInput');
+    if (input) input.value = '';
+    input?.focus();
     openModal('modalAddStudent');
+}
+
+function renderStudentSelectList(students) {
+    const container = document.getElementById('studentsSelectList');
+    if (!students || students.length === 0) {
+        container.innerHTML = '<div class="empty-state"><i class="fas fa-info-circle"></i><p>Nenhum aluno disponível</p></div>';
+        return;
+    }
+    container.innerHTML = students.map(student => `
+        <div class="select-item" onclick="toggleStudentSelection(${student.id})">
+            <div style="display: flex; align-items: center; gap: 12px;">
+                <div class="member-avatar" style="width: 40px; height: 40px; font-size: 0.9rem;">
+                    ${student.image ? `<img src="${student.image}" alt="${student.name}">` : student.name.substring(0, 2).toUpperCase()}
+                </div>
+                <div>
+                    <div style="color: var(--text-light); font-weight: 600;">${student.name}</div>
+                    <div style="color: var(--text-gray); font-size: 0.85rem;">Matrícula: ${student.registration || 'N/A'}</div>
+                </div>
+            </div>
+        </div>`).join('');
+}
+
+function filterStudentList() {
+    const q = (document.getElementById('studentSearchInput')?.value || '').toLowerCase();
+    const currentStudentIds = (projectData?.students || []).map(s => s.id);
+    const base = allStudents.filter(s => !currentStudentIds.includes(s.id));
+    const filtered = q ? base.filter(s =>
+        (s.name || '').toLowerCase().includes(q) ||
+        (s.registration || '').toLowerCase().includes(q)
+    ) : base;
+    renderStudentSelectList(filtered);
 }
 
 // Toggle seleção de professor
@@ -327,6 +538,111 @@ async function confirmAddStudents() {
     }
 }
 
+// ========================= CONVIDADOS/BANCA =========================
+
+// Abrir modal de adicionar convidado
+function openAddGuestModal() {
+    selectedGuests = [];
+    const currentTeacherIds = (projectData?.teachers || []).map(t => t.id);
+    const currentGuestIds = (projectData?.guests || []).map(g => g.id);
+    const excludedIds = [...currentTeacherIds, ...currentGuestIds];
+    const availableGuests = allTeachers.filter(t => !excludedIds.includes(t.id));
+
+    renderGuestSelectList(availableGuests);
+    const input = document.getElementById('guestSearchInput');
+    if (input) input.value = '';
+    input?.focus();
+    openModal('modalAddGuest');
+}
+
+function renderGuestSelectList(guests) {
+    const container = document.getElementById('guestsSelectList');
+    if (!guests || guests.length === 0) {
+        container.innerHTML = '<div class="empty-state"><i class="fas fa-info-circle"></i><p>Nenhum professor disponível</p></div>';
+        return;
+    }
+    container.innerHTML = guests.map(guest => `
+        <div class="select-item" onclick="toggleGuestSelection(${guest.id})">
+            <div style="display: flex; align-items: center; gap: 12px;">
+                <div class="member-avatar" style="width: 40px; height: 40px; font-size: 0.9rem;">
+                    ${guest.image ? `<img src="${guest.image}" alt="${guest.name}">` : guest.name.substring(0, 2).toUpperCase()}
+                </div>
+                <div>
+                    <div style="color: var(--text-light); font-weight: 600;">${guest.name}</div>
+                    ${guest.observation ? `<div style="color: var(--text-gray); font-size: 0.85rem;">${guest.observation}</div>` : ''}
+                </div>
+            </div>
+        </div>`).join('');
+}
+
+function filterGuestList() {
+    const q = (document.getElementById('guestSearchInput')?.value || '').toLowerCase();
+    const currentTeacherIds = (projectData?.teachers || []).map(t => t.id);
+    const currentGuestIds = (projectData?.guests || []).map(g => g.id);
+    const excludedIds = [...currentTeacherIds, ...currentGuestIds];
+    const base = allTeachers.filter(t => !excludedIds.includes(t.id));
+    const filtered = q ? base.filter(t =>
+        (t.name || '').toLowerCase().includes(q) ||
+        (t.observation || '').toLowerCase().includes(q)
+    ) : base;
+    renderGuestSelectList(filtered);
+}
+
+// Toggle seleção de convidado
+function toggleGuestSelection(id) {
+    const index = selectedGuests.indexOf(id);
+    const element = event.currentTarget;
+
+    if (index > -1) {
+        selectedGuests.splice(index, 1);
+        element.classList.remove('selected');
+    } else {
+        selectedGuests.push(id);
+        element.classList.add('selected');
+    }
+}
+
+// Confirmar adição de convidados
+async function confirmAddGuests() {
+    if (selectedGuests.length === 0) {
+        alert('Selecione pelo menos um convidado');
+        return;
+    }
+
+    try {
+        const response = await apiPut(`project/${PROJECT_ID}/guests`, JSON.stringify({ guest_ids: selectedGuests }));
+        if (response.success) {
+            closeModal('modalAddGuest');
+            await loadProjectData();
+            showToast('Convidados adicionados com sucesso!', 'success');
+        } else {
+            throw new Error('Erro ao adicionar convidados');
+        }
+    } catch (error) {
+        console.error(error);
+        alert('Erro ao adicionar convidados');
+    }
+}
+
+// Remover convidado
+async function removeGuest(guestId) {
+    if (!confirm('Tem certeza que deseja remover este convidado?')) return;
+
+    try {
+        const response = await apiDelete(`project/${PROJECT_ID}/guests/${guestId}`, {});
+
+        if (response.success) {
+            await loadProjectData();
+            showToast('Convidado removido com sucesso!', 'success');
+        } else {
+            throw new Error('Erro ao remover convidado');
+        }
+    } catch (error) {
+        console.error(error);
+        alert('Erro ao remover convidado');
+    }
+}
+
 // Remover professor
 async function removeTeacher(teacherId) {
     if (!confirm('Tem certeza que deseja remover este orientador?')) return;
@@ -367,29 +683,42 @@ async function removeStudent(studentId) {
 
 // Adicionar novo relatório
 async function addNewReport() {
-    const description = document.getElementById('newReportInput').value.trim();
+    const description = (document.getElementById('newReportInput')?.value || '').trim();
+    const pendency = (document.getElementById('newReportPendency')?.value || '').trim();
+    const next_steps = (document.getElementById('newReportNextSteps')?.value || '').trim();
+    const local = (document.getElementById('newReportLocal')?.value || '').trim();
+    const feedback = (document.getElementById('newReportFeedback')?.value || '').trim();
+    const status = (document.getElementById('newReportStatus')?.value || 'pendente');
 
-    if (!description) {
-        alert('Digite uma descrição para o relatório');
+    if (!description || description.length < 3) {
+        showToast('Erro', 'A descrição deve ter no mínimo 3 caracteres', 'error');
         return;
     }
 
     try {
-        const response = await apiPost(`project/${PROJECT_ID}/reports`,JSON.stringify({
-            description: description,
-            status: 'pendente'
-        }));
+        const payload = {
+            description,
+            pendency: pendency || undefined,
+            next_steps: next_steps || undefined,
+            local: local || undefined,
+            feedback: feedback || undefined,
+            status: status || 'pendente'
+        };
+
+        const response = await apiPost(`project/${PROJECT_ID}/reports`, JSON.stringify(payload));
 
         if (response.success) {
-            document.getElementById('newReportInput').value = '';
+            const ids = ['newReportInput','newReportPendency','newReportNextSteps','newReportLocal','newReportFeedback'];
+            ids.forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
+            const st = document.getElementById('newReportStatus'); if (st) st.value = 'pendente';
             await loadProjectData();
-            showToast('Relatório adicionado com sucesso!', 'success');
+            showToast('Sucesso', 'Relatório adicionado com sucesso!', 'success');
         } else {
             throw new Error('Erro ao adicionar relatório');
         }
     } catch (error) {
         console.error(error);
-        alert('Erro ao adicionar relatório');
+        showToast('Erro', error.message || 'Erro ao adicionar relatório', 'error');
     }
 }
 
@@ -521,7 +850,16 @@ function closeModal(modalId) {
 }
 
 // Toast notification
-function showToast(message, type = 'success') {
+function showToast(arg1, arg2, arg3) {
+    // Suporta showToast(message, type) e showToast(title, message, type)
+    let message, type;
+    if (typeof arg3 !== 'undefined') {
+        message = arg2;
+        type = arg3 || 'success';
+    } else {
+        message = arg1;
+        type = arg2 || 'success';
+    }
     const toast = document.createElement('div');
     toast.style.cssText = `
                 position: fixed;
@@ -554,3 +892,289 @@ document.addEventListener('keydown', (e) => {
         document.body.style.overflow = 'auto';
     }
 });
+
+// Toggle campos avançados do relatório
+function toggleReportAdvanced() {
+    const wrapper = document.getElementById('reportAdvanced');
+    if (!wrapper) return;
+    wrapper.classList.toggle('open');
+}
+
+// Abrir modal de novo relatório
+function openNewReportModal() {
+    const ids = ['newReportInput','newReportPendency','newReportNextSteps','newReportLocal','newReportFeedback'];
+    ids.forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
+    const st = document.getElementById('newReportStatus'); if (st) st.value = 'pendente';
+    openModal('modalNewReport');
+}
+
+// ========================= Geração de PDF - Ata de Defesa =========================
+function generateDefensePDF() {
+    if (!projectData) {
+        showToast('Erro ao gerar PDF: dados do projeto não carregados', 'error');
+        return;
+    }
+
+    try {
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+
+    let yPos = 25;
+        const pageWidth = doc.internal.pageSize.width;
+        const margin = 20;
+        const maxWidth = pageWidth - (2 * margin);
+        const lineHeight = 6;
+
+        // ============ CONSTANTES DO MODELO ============
+        const instituicao = 'FACULDADE DE TECNOLOGIA DE GARÇA “DEPUTADO JULIO JULINHO MARCONDES DE MOURA”';
+        const curso = 'CURSO DE TECNOLOGIA EM ANÁLISE E DESENVOLVIMENTO DE SISTEMAS';
+        const cidadeUf = 'Garça/SP';
+
+        const alunoNome = (projectData.students && projectData.students[0]?.name) ? projectData.students[0].name : '__________________';
+        const tituloTrabalho = projectData.name || '__________________';
+
+        // Data e hora no formato "Aos DD dias do mês de MÊS de YYYY, às HH:MMh"
+        const now = new Date();
+        const meses = ['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro'];
+        const dd = String(now.getDate()).padStart(2, '0');
+        const mmNome = meses[now.getMonth()];
+        const yyyy = now.getFullYear();
+        const hh = String(now.getHours()).padStart(2, '0');
+        const min = String(now.getMinutes()).padStart(2, '0');
+        const dataHoraExtenso = `Aos ${dd} dias do mês de ${mmNome} de ${yyyy}, às ${hh}:${min}h`;
+
+    // ============ CABEÇALHO/TÍTULO ============
+    // "ATA Nº" na primeira linha (canto esquerdo), e depois duas quebras de linha
+    const ataNumero = (window.__defenseAtaNumber || '').trim();
+    if (ataNumero) {
+        doc.setFontSize(10);
+        doc.setFont(undefined, 'bold');
+        doc.text(`ATA Nº ${ataNumero}`, margin, margin);
+        yPos = margin + (lineHeight * 2); // duas quebras de linha
+    } else {
+        yPos = margin; // começa o título principal no topo, se não tiver número
+    }
+
+    // Título principal centralizado
+    doc.setFontSize(12);
+    doc.setFont(undefined, 'bold');
+    const tituloLinha = `ATA DE DEFESA DO PROJETO DE GRADUAÇÃO DO ${curso} DA ${instituicao}, APRESENTADO PELO ALUNO ${alunoNome}.`;
+        const tituloLinhas = doc.splitTextToSize(tituloLinha, maxWidth);
+        doc.text(tituloLinhas, pageWidth / 2, yPos, { align: 'center' });
+        yPos += (tituloLinhas.length * lineHeight) + 8;
+
+        doc.setFont(undefined, 'normal');
+        doc.setFontSize(11);
+
+        // ============ CORPO FIXO (conforme padrão) ============
+        const localCompleto = (window.__defenseLocation && window.__defenseLocation.trim())
+            ? window.__defenseLocation.trim()
+            : 'Sala Maker da Faculdade de Tecnologia de Garça “Deputado Júlio Julinho Marcondes de Moura”';
+    const resultadoEscolhido = window.__defenseResult === 'reprovado' ? 'REPROVADO' : (window.__defenseResult === 'aprovado' ? 'APROVADO' : '__________________');
+    const paragrafo1 = `${dataHoraExtenso}, em sessão pública, realizou-se na ${localCompleto}, a defesa do Projeto de Graduação “${tituloTrabalho.toUpperCase()}”, de autoria do aluno ${alunoNome}. A Banca Examinadora iniciou suas atividades submetendo o aluno à forma regimental de defesa do Projeto de Graduação. Terminado o exame, a Banca procedeu ao julgamento e declarou o aluno ${resultadoEscolhido === '__________________' ? '__________________' : resultadoEscolhido}.`;
+        const linhas1 = doc.splitTextToSize(paragrafo1, maxWidth);
+        doc.text(linhas1, margin, yPos);
+        yPos += (linhas1.length * lineHeight) + 8;
+
+    const paragrafo2 = `Desta forma, considera-se ${resultadoEscolhido === '__________________' ? '__________________' : resultadoEscolhido.toLowerCase()} o referido Projeto de Graduação. Encerradas as atividades, foi lavrada a presente ata, que após lida, ficará arquivada no prontuário do discente.`;
+        const linhas2 = doc.splitTextToSize(paragrafo2, maxWidth);
+        doc.text(linhas2, margin, yPos);
+        yPos += (linhas2.length * lineHeight) + 12;
+
+        // ============ ASSINATURAS ============
+        if (yPos > 220) {
+            doc.addPage();
+            yPos = 25;
+        }
+
+        // Orientadores (assinatura)
+        if (projectData.teachers && projectData.teachers.length > 0) {
+            projectData.teachers.forEach((teacher) => {
+                if (yPos > 250) { doc.addPage(); yPos = 25; }
+                doc.line(margin, yPos, pageWidth - margin, yPos);
+                yPos += 5;
+                doc.setFontSize(10);
+                doc.text(teacher.name, pageWidth / 2, yPos, { align: 'center' });
+                yPos += 4;
+                doc.setFontSize(9);
+                doc.text('Orientador', pageWidth / 2, yPos, { align: 'center' });
+                yPos += 12;
+                doc.setFontSize(11);
+            });
+        }
+
+        // Convidados/Membros da Banca (assinatura)
+        if (projectData.guests && projectData.guests.length > 0) {
+            projectData.guests.forEach((guest) => {
+                if (yPos > 250) { doc.addPage(); yPos = 25; }
+                doc.line(margin, yPos, pageWidth - margin, yPos);
+                yPos += 5;
+                doc.setFontSize(10);
+                doc.text(guest.name, pageWidth / 2, yPos, { align: 'center' });
+                yPos += 4;
+                doc.setFontSize(9);
+                doc.text('Membro da Banca', pageWidth / 2, yPos, { align: 'center' });
+                yPos += 12;
+                doc.setFontSize(11);
+            });
+        }
+
+        // ============ RODAPÉ (Local/Data + paginação) ============
+        const totalPages = doc.internal.getNumberOfPages();
+        const dataRodape = `${cidadeUf}, ${dd} de ${mmNome} de ${yyyy}`;
+        for (let i = 1; i <= totalPages; i++) {
+            doc.setPage(i);
+            doc.setFontSize(8);
+            doc.text(dataRodape, pageWidth / 2, doc.internal.pageSize.height - 15, { align: 'center' });
+            doc.text(`Página ${i} de ${totalPages}`, pageWidth / 2, doc.internal.pageSize.height - 10, { align: 'center' });
+        }
+
+        // ============ UPLOAD + DOWNLOAD ============
+        const safeStudent = alunoNome.replace(/[^a-z0-9]/gi, '_');
+        const fileName = `ATA_DEFESA_${safeStudent}_${Date.now()}.pdf`;
+
+        // Upload para backend como arquivo do projeto
+        const pdfBlob = doc.output('blob');
+        const pdfFile = new File([pdfBlob], fileName, { type: 'application/pdf' });
+        const formData = new FormData();
+        formData.append('files[]', pdfFile);
+
+        apiUpload(`project/${PROJECT_ID}/files`, formData)
+            .then(async (resp) => {
+                if (resp?.success) {
+                    // Tentar extrair o id do arquivo recém-enviado em vários formatos comuns
+                    let fileId = null;
+
+                    // Diretos
+                    if (!fileId && typeof resp.file_id === 'number') fileId = resp.file_id;
+                    if (!fileId && typeof resp.id === 'number') fileId = resp.id;
+
+                    // Objeto único
+                    if (!fileId && resp.file) {
+                        const f = resp.file;
+                        fileId = f.id || f.file_id || null;
+                    }
+
+                    // Arrays possíveis (inclui 'saved' do upload)
+                    const candidatesArrays = [resp.saved, resp.files, resp.uploaded, resp.items, resp.data?.files, resp.data?.items].filter(a => Array.isArray(a));
+                    for (const arr of candidatesArrays) {
+                        if (fileId) break;
+                        // Se for array de números (ids)
+                        if (arr.length && typeof arr[0] === 'number') {
+                            fileId = arr[arr.length - 1];
+                            break;
+                        }
+                        // Se for array de objetos
+                        const exact = arr.find(o => (o?.name === fileName) || (o?.original_name === fileName));
+                        const contains = exact || arr.find(o => (o?.name || o?.original_name || '').includes(fileName));
+                        const obj = contains || arr[arr.length - 1];
+                        if (obj) fileId = obj.id || obj.file_id || null;
+                    }
+
+                    // Se não veio, tentar recarregar os arquivos e encontrar pelo nome
+                    if (!fileId) {
+                        try {
+                            const listResp = await apiGet(`project/${PROJECT_ID}/files`);
+                            const listArrays = [listResp.files, listResp.items, listResp.data?.files, listResp.data?.items].filter(a => Array.isArray(a));
+                            for (const arr of listArrays) {
+                                const exact = arr.find(f => (f?.name === fileName) || (f?.original_name === fileName));
+                                const contains = exact || arr.find(f => (f?.name || f?.original_name || '').includes(fileName));
+                                if (contains) { fileId = contains.id || contains.file_id; break; }
+                            }
+                        } catch (e) {
+                            console.warn('Não foi possível listar arquivos para achar file_id da ata', e?.message || e);
+                        }
+                    }
+
+                    // Criar registro de ata se tivermos um fileId e endpoint existir
+                    if (fileId) {
+                        try {
+                            const payloadAta = {
+                                file_id: fileId,
+                                student_name: alunoNome,
+                                title: tituloTrabalho,
+                                result: (window.__defenseResult === 'reprovado' ? 'reprovado' : 'aprovado'),
+                                location: localCompleto,
+                                started_at: `${yyyy}-${String(now.getMonth()+1).padStart(2,'0')}-${dd}T${hh}:${min}:00-03:00`
+                            };
+                            await apiPost(`project/${PROJECT_ID}/atas`, payloadAta);
+                        } catch (e) {
+                            console.warn('Registro de ata não criado (endpoint indisponível?)', e?.message || e);
+                        }
+                    } else {
+                        console.warn('file_id da ata não encontrado após upload');
+                    }
+
+                    showToast('Ata gerada e salva no projeto', 'success');
+                    if (typeof loadProjectFiles === 'function') {
+                        loadProjectFiles().catch(() => {});
+                    }
+                } else {
+                    showToast('Ata gerada, mas falhou ao salvar no projeto', 'error');
+                }
+            })
+            .catch(() => {
+                showToast('Ata gerada, mas falhou ao salvar no projeto', 'error');
+            })
+            .finally(() => {
+                // Download local para o usuário
+                doc.save(fileName);
+            });
+
+    } catch (error) {
+        console.error('Erro ao gerar PDF:', error);
+        showToast('Erro ao gerar PDF: ' + error.message, 'error');
+    }
+}
+
+// ========= Modal Resultado =========
+function openResultModal() {
+    const el = document.getElementById('modalResult');
+    if (!el) return generateDefensePDF();
+    el.classList.add('active');
+    // Preencher local padrão se vazio
+    const loc = document.getElementById('defenseLocation');
+    if (loc && !loc.value) {
+        loc.value = 'Sala Maker da Faculdade de Tecnologia de Garça “Deputado Júlio Julinho Marcondes de Moura”';
+    }
+    // Preencher ATA Nº automaticamente com próximo id
+    prefillAtaNumber();
+}
+
+function closeResultModal() {
+    const el = document.getElementById('modalResult');
+    if (el) el.classList.remove('active');
+}
+
+function confirmGenerateWithResult() {
+    const select = document.getElementById('defenseResult');
+    const value = (select && select.value) || 'aprovado';
+    window.__defenseResult = value; // 'aprovado' | 'reprovado'
+    const ataInput = document.getElementById('defenseAtaNumber');
+    window.__defenseAtaNumber = ataInput ? ataInput.value : '';
+    const locInput = document.getElementById('defenseLocation');
+    window.__defenseLocation = locInput ? locInput.value : '';
+    closeResultModal();
+    generateDefensePDF();
+}
+
+async function prefillAtaNumber() {
+    const input = document.getElementById('defenseAtaNumber');
+    if (!input) return;
+    // Não sobrescreve se o usuário já digitou algo
+    if ((input.value || '').trim()) return;
+
+    try {
+        const resp = await apiGet(`project/${PROJECT_ID}/atas`);
+        const items = (resp && (resp.items || resp.atas || resp.data?.items)) || [];
+        let maxId = 0;
+        for (const it of items) {
+            if (it && typeof it.id === 'number' && it.id > maxId) maxId = it.id;
+        }
+        const next = maxId + 1 || 1;
+        input.value = String(next);
+    } catch (e) {
+        // Se não houver endpoint ainda, deixa em branco
+        console.warn('Não foi possível obter próximo número de ATA', e?.message || e);
+    }
+}

@@ -153,6 +153,68 @@ include("../generics/sidebar.php");
             </div>
         </div>
     </div>
+
+    <!-- Modal de Arquivos do Curso -->
+    <div class="modal-overlay" id="filesModalOverlay" style="display:none;">
+        <div class="modal" style="max-width: 900px; width: 95%;">
+            <div class="modal-header">
+                <h3>
+                    <i class="fas fa-paperclip"></i>
+                    <span id="filesModalTitle">Arquivos do Curso</span>
+                </h3>
+                <button class="modal-close" onclick="closeFilesModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div id="filesUploadArea" class="form-group" style="margin-bottom: 16px;">
+                    <label>
+                        <i class="fas fa-upload"></i>
+                        Enviar arquivos
+                    </label>
+                    <div style="display:flex; gap: 12px; align-items: center; flex-wrap: wrap;">
+                        <input type="file" id="filesUploadInput" multiple>
+                        <button class="btn btn-primary" id="filesUploadBtn" onclick="uploadCourseFiles()">
+                            <i class="fas fa-cloud-upload-alt"></i>
+                            Upload
+                        </button>
+                    </div>
+                    <small style="color: var(--text-gray); display:block; margin-top:6px;">Formatos permitidos: pdf, doc, docx, xls, xlsx, ppt, pptx, txt, png, jpg, jpeg. Máx.: 10MB por arquivo.</small>
+                </div>
+
+                <div class="table-container" style="padding:0; box-shadow:none; background:transparent;">
+                    <div class="table-header" style="justify-content: space-between;">
+                        <h2 style="font-size:1.1rem;">
+                            <i class="fas fa-folder-open"></i>
+                            Arquivos
+                        </h2>
+                        <button class="btn btn-secondary btn-icon" onclick="refreshFilesList()" title="Atualizar">
+                            <i class="fas fa-sync-alt"></i>
+                        </button>
+                    </div>
+                    <div class="table-wrapper">
+                        <table id="courseFilesTable">
+                            <thead>
+                                <tr>
+                                    <th>Nome</th>
+                                    <th>Tamanho</th>
+                                    <th>Enviado em</th>
+                                    <th style="width:160px;">Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody id="filesTableBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-cancel" onclick="closeFilesModal()">
+                    <i class="fas fa-times"></i>
+                    Fechar
+                </button>
+            </div>
+        </div>
+    </div>
 </main>
 </body>
 </html>

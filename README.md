@@ -57,5 +57,8 @@ Se quiser, eu posso:
 - Adicionar verificações de segurança básicas nas views.
 
 
----
 Gerado automaticamente — posso adaptar o README com informações do banco de dados, rotas e setup de ambiente se você me passar os detalhes.
+
+## Documentação detalhada
+
+Consulte a documentação completa em `docs/DOCUMENTATION.md` para arquitetura, fluxos, endpoints esperados, padrões e roadmap.

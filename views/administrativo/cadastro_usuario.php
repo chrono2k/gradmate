@@ -1,175 +1,174 @@
-<link rel="stylesheet" href="../../assets/libs/bootstrap/icons-main/font/bootstrap-icons.css">
-<link rel="stylesheet" href="../../assets/libs/fontawesome-free-6.5.1-web/css/all.min.css">
-<link rel="stylesheet" href="../../assets/libs/bootstrap/bootstrap-5.3.3-dist/css/bootstrap.min.css">
-<link rel="stylesheet" href="../../assets/libs/bootstrap/bootstrap-table-master/dist/bootstrap-table.min.css">
-<link rel="stylesheet" href="../../assets/libs/bootstrap/bootstrap-table-master/dist/extensions/filter-control/bootstrap-table-filter-control.min.css">
-<link rel="stylesheet" href="../../assets/libs/Jquery/select2-4.1.0-rc.0/dist/css/select2.min.css">
-<link rel="stylesheet" href="../../assets/libs/Izitoast/iziToast-master/dist/css/iziToast.min.css">
-<link rel="stylesheet" href="../../css/generic/header.css?v=<?php echo date('YmdHis'); ?>">
-<link rel="stylesheet" href="../../css/administrativo/cadastro_usuario.css?v=<?php echo date('YmdHis'); ?>">
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Administradores - GradMate</title>
+    
+    <link rel="stylesheet" href="../../assets/libs/fontawesome-free-6.5.1-web/css/all.min.css">
+    <link rel="stylesheet" href="../../css/generic/generic.css?v=<?php echo date('YmdHis'); ?>">
+    <link rel="stylesheet" href="../../css/generic/header.css?v=<?php echo date('YmdHis'); ?>">
+    <link rel="stylesheet" href="../../css/generic/sidebar.css?v=<?php echo date('YmdHis'); ?>">
+    <link rel="stylesheet" href="../../css/administrativo/admins.css?v=<?php echo date('YmdHis'); ?>">
+</head>
 
 <?php
 include("../generics/header.php");
 include("../generics/sidebar.php");
 ?>
 
-
 <body>
-
 <main class="main-content" id="mainContent">
-    <div id="conteudo_pagina">
-        <div class="row justify-content-center">
-            <div class=" col-xxl-10 col-xl-10 col-lg-11 col-md-12 col-sm-12">
-                <div class="container">
-                    <div class="card">
-                        <div class="card-header bg-transparent" id="">
-                            <h2 class="text-center">Usuários do sistema</h2>
-                            <div class="card-header bg-transparent" id="">
-                                <div class="align-self-end d-flex gap-3 justify-content-end" id="botoes">
-                                    <button id="novo_usuario" class="btn btn-c btn-outline-primary mb-3 animate-right-3" type="button" data-bs-toggle="modal"
-                                            data-bs-target="#adicionar_usuario"><i class="fas fa-user-plus"></i>
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="card shadow-inset bg-primary border-light p-4 rounded"
-                             style="background: radial-gradient(circle, rgb(255 255 255 / 41%) 20%, rgb(0 35 103 / 8%) 54%, rgb(153 18 18 / 7%) 100%);">
-                            <div class="container position-relative">
-                                <table id="tabela_usuarios"
-                                       data-buttons-class="secondary"
-                                       data-show-fullscreen="true"
-                                       data-pagination="true"
-                                       data-sortable="true"
-                                       class="table-responsive table-striped tabela_usuarios"
-                                       data-show-columns="true">
-                                    <thead>
-                                    <tr class="">
-                                        <th data-sortable="true" data-field="id" class="col-1 text-center"
-                                            data-filter-control="input"> ID
-                                        </th>
-                                        <th data-sortable="true" data-field="username" class="col-3"
-                                            data-filter-control="input"> Usuário
-                                        </th>
-                                        <th data-sortable="true" data-field="authority" data-formatter="autoridade_format"
-                                            class="col-3 text-center" data-filter-control="input"> Autoridade
-                                        </th>
-                                        <th data-sortable="true" data-field="deletear" data-formatter="usuario_delete"
-                                            class="col-1 text-center" data-filter-control="input"> Desativar
-                                        </th>
-                                        <th data-sortable="true" data-field="resetar" data-formatter="reseta_senha"
-                                            class="col-1 text-center" data-filter-control="input"> Resetar senha
-                                        </th>
-                                    </tr>
-                                    </thead>
-                                    <tbody>
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="modal fade" id="adicionar_usuario" tabindex="-1" aria-labelledby="edit-modal-label"
-                     aria-hidden="true">
-                    <div class="modal-dialog modal-dialog-centered">
-                        <div class="modal-content">
-                            <div class="modal-header">
-                                <h5 class="modal-title" id="exampleModalLabel">Criar novo usuário</h5>
-                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                            </div>
-                            <div class="modal-body">
-                                <form class=" g-3 needs-validation" novalidate id="form_novo_usuario">
-                                    <fieldset>
-                                        <div class="form-floating mb-3">
-                                            <input type="text" class="form-control" placeholder="name"  name="user" id="recipient-name">
-                                            <label for="recipient-name" class="labels_form"> <i class="far fa-envelope"></i> Login</label>
-                                        </div>
-                                        <div class="form-floating mb-3">
-                                            <select class="form-select" id="select_autoridade" name="authority"
-                                                    aria-label="selecao de autoridade">
-                                                <option value="USER" selected>Usuário</option>
-                                                <option value="ADMIN">Administrador</option>
-                                            </select>
-                                            <label for="select_autoridade">Autoridade do usuário</label>
-                                        </div>
-                                    </fieldset>
-                                </form>
-                            </div>
-                            <div class="modal-footer">
-                                <button type="button" class="btn btn-c btn-outline-primary mb-1 botao_interacao animate-right-3"
-                                        style="float:left; margin-bottom: 100px" id="botao_criar_usuario">Criar o usuário
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="modal fade" id="escolher_autoridade" aria-labelledby="exampleModalLabel" aria-hidden="true">
-                    <div class="modal-dialog modal-dialog-centered">
-                        <div class="modal-content">
-                            <div class="modal-header">
-                                <h5 class="modal-title" id="exampleModalLabel">Alterar nivel de autoridade</h5>
-                                <h5 id="id_order_modal_autoridade" style="display: none;"></h5>
-                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                            </div>
-                            <div class="modal-body">
-                                <form id="formulario_autoridade" class="needs-validation" novalidate>
-                                    <div class="form-floating mb-3">
-                                        <select class="form-select" id="select_autoridade" name="authority"
-                                                aria-label="selecao de autoridade">
-                                            <option value="USER" selected>Usuário</option>
-                                            <option value="ADMIN">Administrador</option>
-                                        </select>
-                                        <label for="select_autoridade">Autoridade do usuário</label>
+    <div class="page-container">
+        <!-- Page Header -->
+        <div class="page-header">
+            <div class="page-title">
+                <i class="fas fa-user-shield"></i>
+                <h1>Administradores</h1>
+            </div>
+            <button class="btn-add" onclick="openCreateAdminModal()">
+                <i class="fas fa-plus"></i>
+                Novo Administrador
+            </button>
+        </div>
 
-                                    </div>
-                                </form>
-                            </div>
-                            <div class="modal-footer">
-                                <button class="btn btn-c btn-outline-primary mb-1 botao_interacao animate-right-3" type="button" id="alterar_autoridade">
-                                    Escolher
-                                </button>
-                            </div>
-                        </div>
-                    </div>
+        <!-- Admins Table -->
+        <div class="admins-table-wrapper">
+            <table class="admins-table" id="adminsTable">
+                <thead>
+                    <tr>
+                        <th style="width: 60px;">ID</th>
+                        <th>Usuário</th>
+                        <th>Email</th>
+                        <th style="width: 140px;">Autoridade</th>
+                        <th style="width: 120px;">Status</th>
+                        <th style="width: 260px;">Ações</th>
+                    </tr>
+                </thead>
+                <tbody id="adminsTbody">
+                    <!-- Rows rendered by JS -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Modal: Create Admin -->
+    <div class="modal-overlay" id="modalCreateAdmin">
+        <div class="modal-container">
+            <div class="modal-header">
+                <h2>
+                    <i class="fas fa-user-plus"></i>
+                    Criar Novo Administrador
+                </h2>
+                <button class="btn-close" onclick="closeCreateAdminModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="info-field">
+                    <label for="createUsername">
+                        <i class="fas fa-user"></i>
+                        Nome de Usuário
+                    </label>
+                    <input 
+                        type="text" 
+                        id="createUsername" 
+                        placeholder="Digite o nome de usuário"
+                        autocomplete="off"
+                    />
                 </div>
-                <div class="modal fade" id="mostra_senha_nova" data-bs-backdrop="static" data-bs-keyboard="false"
-                     tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
-                    <div class="modal-dialog  modal-dialog-centered">
-                        <div class="modal-content modal-senha">
-                            <div class="modal-header">
-                                <h5 class="modal-title modal-title-senha" id="exampleModalLabel">Anote a senha gerada:</h5>
-                                <h5 id="id_order_modal_autoridade" style="display: none;"></h5>
-                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                            </div>
-                            <div class="modal-body">
-                                <h5 class="white mb-4" id="mostra_senha_gerada" >-</h5>
-                            </div>
-                            <div class="modal-footer">
-                            </div>
-                        </div>
-                    </div>
+
+                <div class="info-field">
+                    <label for="createEmail">
+                        <i class="fas fa-envelope"></i>
+                        Email
+                    </label>
+                    <input 
+                        type="email" 
+                        id="createEmail" 
+                        placeholder="Digite o email (opcional)"
+                        autocomplete="off"
+                    />
                 </div>
+
+                <div class="alert-info">
+                    <i class="fas fa-info-circle"></i>
+                    Uma senha temporária será gerada automaticamente e exibida após a criação.
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" onclick="closeCreateAdminModal()">
+                    Cancelar
+                </button>
+                <button class="btn-primary" onclick="confirmCreateAdmin()">
+                    <i class="fas fa-check"></i>
+                    Criar Administrador
+                </button>
             </div>
         </div>
     </div>
 
+    <!-- Modal: Password Display -->
+    <div class="modal-overlay" id="modalPasswordDisplay">
+        <div class="modal-container modal-password">
+            <div class="modal-header">
+                <h2>
+                    <i class="fas fa-key"></i>
+                    Senha Gerada
+                </h2>
+            </div>
+            <div class="modal-body">
+                <div class="alert-warning">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <strong>Atenção!</strong> Anote esta senha, ela não será exibida novamente.
+                </div>
+
+                <div class="password-display">
+                    <div class="password-label">Usuário:</div>
+                    <div class="password-value" id="displayUsername">-</div>
+                </div>
+
+                <div class="password-display">
+                    <div class="password-label">Senha Temporária:</div>
+                    <div class="password-value password-big" id="displayPassword">-</div>
+                </div>
+
+                <button class="btn-copy" onclick="copyPasswordToClipboard()">
+                    <i class="fas fa-copy"></i>
+                    Copiar Senha
+                </button>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-primary" onclick="closePasswordModal()">
+                    <i class="fas fa-check"></i>
+                    Entendi, anotei a senha
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Confirm Action -->
+    <div class="modal-overlay" id="modalConfirm">
+        <div class="modal-container modal-confirm">
+            <div class="modal-header">
+                <h2 id="confirmTitle">Confirmar Ação</h2>
+            </div>
+            <div class="modal-body">
+                <p id="confirmMessage">Deseja realmente continuar?</p>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" onclick="closeConfirmModal()">
+                    Cancelar
+                </button>
+                <button class="btn-danger" id="confirmActionBtn" onclick="executeConfirmAction()">
+                    Confirmar
+                </button>
+            </div>
+        </div>
+    </div>
 </main>
+
+<script src="../../assets/js/generics/funcoes_auxiliares.js?v=<?php echo date('YmdHis'); ?>"></script>
+<script src="../../assets/js/administrativo/admins.js?v=<?php echo date('YmdHis'); ?>"></script>
 </body>
 </html>
-
-
-
-<script src="../../assets/libs/Jquery/jquery-3.7.1.min.js"></script>
-<script src="../../assets/libs/bootstrap/bootstrap-5.3.3-dist/js/bootstrap.bundle.js"></script>
-<script src="../../assets/libs/Jquery/select2-4.1.0-rc.0/dist/js/select2.min.js"></script>
-<script src="../../assets/libs/bootstrap/tableExport.jquery.plugin-master/tableExport.min.js"></script>
-<script src="../../assets/libs/bootstrap/bootstrap-table-master/dist/bootstrap-table.min.js"></script>
-<script src="../../assets/libs/bootstrap/bootstrap-table-master/dist/extensions/export/bootstrap-table-export.min.js"></script>
-<script src="../../assets/libs/bootstrap/bootstrap-table-master/dist/locale/bootstrap-table-pt-BR.min.js"></script>
-<script src="../../assets/libs/bootstrap/bootstrap-table-master/dist/extensions/filter-control/bootstrap-table-filter-control.min.js"></script>
-<script src="../../assets/libs/Izitoast/iziToast-master/dist/js/iziToast.min.js"></script>
-<script src="../../assets/js/generics/menu.js?v=<?php echo date('YmdHis'); ?>"></script>
-<script src="../../assets/js/generics/requisicoes.js?v=<?php echo date('YmdHis'); ?>"></script>
-<script src="../../assets/js/usuarios/requisita_usuarios.js?v=<?php echo date('YmdHis'); ?>"></script>
-<script src="../../assets/js/usuarios/criar_usuario.js?v=<?php echo date('YmdHis'); ?>"></script>
-<script src="../../assets/js/usuarios/edita_usuario.js?v=<?php echo date('YmdHis'); ?>"></script>
-<script src="../../assets/js/usuarios/desativa_usuario.js?v=<?php echo date('YmdHis'); ?>"></script>

@@ -138,7 +138,7 @@
     background: rgba(255, 255, 255, 0.05);
     border: 1px solid var(--glass-border);
     border-radius: 10px;
-    color: var(--black);
+    color: var(--black); /* texto escuro nas informações do projeto */
     font-size: 1rem;
     transition: all 0.3s ease;
 }
@@ -154,6 +154,24 @@
 .info-field textarea {
     resize: vertical;
     min-height: 100px;
+}
+
+/* Inputs dentro de modais devem ter texto claro por conta do fundo escuro */
+.modal .info-field input,
+.modal .info-field textarea,
+.modal .info-field select {
+    color: var(--text-light);
+}
+
+/* Options dentro do select precisam ter cor escura para legibilidade */
+.modal .info-field select option {
+    color: #1a1a1a;
+    background: #ffffff;
+}
+
+.modal .info-field input::placeholder,
+.modal .info-field textarea::placeholder {
+    color: var(--text-gray);
 }
 
 /* Members List */
@@ -215,21 +233,21 @@
 /* Chat Box Reports */
 .chat-container {
     box-shadow: inset 2px 2px 5px #b8b9be, inset -3px -3px 7px #a4a4a42b;
-    /*background: rgba(0, 0, 0, 0.2);*/
     border-radius: 15px;
-    padding: 20px;
-    max-height: 600px;
+    padding: 16px; /* um pouco menos padding para ganhar área útil */
+    /* max-height removido para permitir expansão dos campos adicionais */
     display: flex;
     flex-direction: column;
 }
 
 .chat-messages {
-    flex: 1;
+    flex: 1 1 auto;
+    min-height: 260px; /* garante altura mínima confortável */
     overflow-y: auto;
-    margin-bottom: 20px;
+    margin-bottom: 10px;
     display: flex;
     flex-direction: column;
-    gap: 16px;
+    gap: 8px; /* mensagens mais juntinhas */
 }
 
 .chat-messages::-webkit-scrollbar {
@@ -242,10 +260,9 @@
 }
 
 .report-message {
-    background: rgba(255, 255, 255, 0.05);
-    border-radius: 12px;
-    padding: 16px;
-    /*border-left: 4px solid var(--primary);*/
+    background: rgba(255, 255, 255, 0.12); /* um pouco mais de contraste */
+    border-radius: 10px;
+    padding: 12px; /* menos padding para compactar */
     border: 1px solid #1f1f1f21;
     border-left: 4px solid rgb(20 43 130 / 28%);
 }
@@ -276,8 +293,32 @@
 
 .report-content {
     color: var(--black);
-    line-height: 1.6;
-    margin-bottom: 12px;
+    font-size: 0.93rem;
+    line-height: 0.1; /* mais compacto */
+    margin-bottom: 8px;
+    white-space: pre-wrap; /* respeita quebras de linha */
+}
+
+/* Campos formatados dentro do conteúdo do relatório */
+.report-field {
+    margin: 4px 0; /* menos espaço entre campos */
+    display: flex;
+    gap: 8px;
+    align-items: flex-start;
+}
+.report-field i {
+    color: var(--text-gray);
+    margin-top: 3px;
+}
+.report-label {
+    color: var(--text-gray);
+    font-weight: 600;
+    margin-right: 6px;
+}
+
+.report-actions {
+    display: flex;
+    gap: 8px;
 }
 
 .report-footer {
@@ -300,7 +341,8 @@
 
 .chat-input-container {
     display: flex;
-    gap: 12px;
+    gap: 10px;
+    align-items: center;
 }
 
 .chat-input {
@@ -348,7 +390,8 @@
     width: 90%;
     max-width: 600px;
     max-height: 90vh;
-    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
     box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5);
 }
 
@@ -358,6 +401,7 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
+    flex-shrink: 0;
 }
 
 .modal-title {
@@ -383,15 +427,31 @@
 }
 
 .modal-body {
-    padding: 24px;
+    padding: 20px 24px;
+    overflow-y: auto;
+    flex: 1 1 auto;
 }
 
 .modal-footer {
-    padding: 20px 24px;
+    padding: 16px 24px;
     border-top: 1px solid var(--glass-border);
+    flex-shrink: 0;
     display: flex;
     gap: 12px;
     justify-content: flex-end;
+}
+
+/* Grid para edição de relatório no modal */
+.edit-report-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+}
+
+@media (max-width: 600px) {
+    .edit-report-grid {
+        grid-template-columns: 1fr;
+    }
 }
 
 /* Select List */
@@ -455,6 +515,66 @@
 /* Responsive */
 @media (max-width: 1024px) {
     .grid-layout {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Report Advanced (colapsável) */
+.report-advanced {
+    border: 1px dashed var(--glass-border);
+    border-radius: 12px;
+    margin: 8px 0 12px;
+    overflow: visible; /* permite ver os campos quando abertos */
+}
+.report-advanced-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 12px;
+    cursor: pointer;
+    background: rgba(255, 255, 255, 0.06);
+    border-bottom: 1px solid var(--glass-border);
+    user-select: none;
+    transition: all 0.3s ease;
+}
+.report-advanced-header:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+.report-advanced-body {
+    max-height: 0;
+    overflow: hidden;
+    padding: 0 12px;
+    transition: max-height 0.4s ease, padding 0.3s ease;
+}
+.report-advanced.open .report-advanced-body {
+    max-height: 1000px; /* altura maior para acomodar todos os campos */
+    padding: 16px 12px;
+    overflow: visible; /* permite ver dropdowns e mensagens de validação */
+}
+.report-advanced.open #reportAdvancedIcon {
+    transform: rotate(180deg);
+    transition: transform 0.3s ease;
+}
+#reportAdvancedIcon {
+    transition: transform 0.3s ease;
+}
+.report-advanced-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+}
+
+/* Garantir que inputs/selects dentro dos campos avançados sejam bem visíveis */
+.report-advanced-body .info-field {
+    margin-bottom: 0; /* já tem gap no grid */
+}
+.report-advanced-body .info-field input,
+.report-advanced-body .info-field select {
+    min-height: 42px; /* altura confortável para input */
+}
+
+@media (max-width: 768px) {
+    .report-advanced-grid {
         grid-template-columns: 1fr;
     }
 }
