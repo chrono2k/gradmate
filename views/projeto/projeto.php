@@ -37,10 +37,6 @@ include("../generics/sidebar.php");
                         <option value="Concluído">Concluído</option>
                         <option value="Trancado">Trancado</option>
                     </select>
-                    <button id="btnGeneratePDF" class="btn btn-success" onclick="openResultModal()" style="display:none;">
-                        <i class="fas fa-file-pdf"></i>
-                        Gerar Ata de Defesa
-                    </button>
                 </div>
             </div>
         </div>
@@ -197,6 +193,84 @@ include("../generics/sidebar.php");
                             <p>Carregando...</p>
                         </div>
                     </div>
+                </div>
+
+                <!-- Atas / Documentos -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">
+                            <i class="fas fa-file-contract"></i>
+                            Atas
+                        </h3>
+                    </div>
+
+                    <div style="display: flex; flex-direction: column; gap: 12px;">
+                        <button id="btnGeneratePDF" class="btn btn-success" onclick="openResultModal()" style="display:none;">
+                            <i class="fas fa-file-pdf"></i>
+                            Gerar Ata de Defesa
+                        </button>
+                        <button id="btnGenerateNotice" class="btn btn-primary" onclick="openNoticeModal()" style="display:none;">
+                            <i class="fas fa-bell"></i>
+                            Gerar Aviso para Banca
+                        </button>
+                        <button id="btnGenerateCertificate" class="btn btn-warning" onclick="generateOrientadorCertificate()" style="display:none;">
+                            <i class="fas fa-certificate"></i>
+                            Gerar Certificado Orientador
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal Aviso para Banca -->
+        <div class="modal-overlay" id="modalNotice">
+            <div class="modal">
+                <div class="modal-header">
+                    <h3 class="modal-title">
+                        <i class="fas fa-bell"></i>
+                        Aviso para Banca
+                    </h3>
+                    <button class="modal-close" onclick="closeNoticeModal()">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <!-- Campo ATA Nº oculto -->
+                    <div class="info-field" style="display: none;">
+                        <label for="noticeAtaNumber">ATA Nº</label>
+                        <input type="text" id="noticeAtaNumber" autocomplete="off" />
+                    </div>
+
+                    <div class="info-field">
+                        <label for="noticeDate">
+                            <i class="fas fa-calendar"></i>
+                            Data
+                        </label>
+                        <input type="date" id="noticeDate" autocomplete="off" />
+                    </div>
+
+                    <div class="info-field">
+                        <label for="noticeTime">
+                            <i class="fas fa-clock"></i>
+                            Horário
+                        </label>
+                        <input type="time" id="noticeTime" autocomplete="off" />
+                    </div>
+
+                    <div class="info-field">
+                        <label for="noticeRoom">
+                            <i class="fas fa-door-open"></i>
+                            Sala
+                        </label>
+                        <input type="text" id="noticeRoom" placeholder="Ex.: Laboratório 1" autocomplete="off" />
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" onclick="closeNoticeModal()">Cancelar</button>
+                    <button class="btn btn-success" onclick="confirmGenerateNotice()">
+                        <i class="fas fa-file-pdf"></i>
+                        Gerar Aviso
+                    </button>
                 </div>
             </div>
         </div>

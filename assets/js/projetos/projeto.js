@@ -52,12 +52,22 @@ function renderProjectData() {
     const statusBadge = document.getElementById('projectStatus');
     statusBadge.className = 'status-badge ' + projectData.status.toLowerCase().replace(' ', '-');
 
-    // Mostrar botão de gerar PDF se status for Defesa ou Concluído
+    // Mostrar botões de atas conforme status
     const btnPDF = document.getElementById('btnGeneratePDF');
+    const btnNotice = document.getElementById('btnGenerateNotice');
+    
+    // Ata de Defesa: apenas em Defesa ou Concluído
     if (btnPDF && (projectData.status === 'Defesa' || projectData.status === 'Concluído')) {
         btnPDF.style.display = 'inline-flex';
     } else if (btnPDF) {
         btnPDF.style.display = 'none';
+    }
+    
+    // Aviso para Banca: em Qualificação, Defesa ou Concluído
+    if (btnNotice && (projectData.status === 'Qualificação' || projectData.status === 'Defesa' || projectData.status === 'Concluído')) {
+        btnNotice.style.display = 'inline-flex';
+    } else if (btnNotice) {
+        btnNotice.style.display = 'none';
     }
 
     // Render course
@@ -1176,5 +1186,284 @@ async function prefillAtaNumber() {
     } catch (e) {
         // Se não houver endpoint ainda, deixa em branco
         console.warn('Não foi possível obter próximo número de ATA', e?.message || e);
+    }
+}
+
+// ========================= Aviso para Banca =========================
+function openNoticeModal() {
+    const el = document.getElementById('modalNotice');
+    if (!el) return;
+    
+    // Preencher data e horário padrão (hoje + horário atual)
+    const now = new Date();
+    const dateInput = document.getElementById('noticeDate');
+    const timeInput = document.getElementById('noticeTime');
+    const roomInput = document.getElementById('noticeRoom');
+    
+    if (dateInput) {
+        const yyyy = now.getFullYear();
+        const mm = String(now.getMonth() + 1).padStart(2, '0');
+        const dd = String(now.getDate()).padStart(2, '0');
+        dateInput.value = `${yyyy}-${mm}-${dd}`;
+    }
+    
+    if (timeInput) {
+        const hh = String(now.getHours()).padStart(2, '0');
+        const min = String(now.getMinutes()).padStart(2, '0');
+        timeInput.value = `${hh}:${min}`;
+    }
+    
+    if (roomInput && !roomInput.value) {
+        roomInput.value = 'Laboratório 1';
+    }
+    
+    // Preencher ATA Nº
+    prefillNoticeAtaNumber();
+    
+    el.classList.add('active');
+}
+
+function closeNoticeModal() {
+    const el = document.getElementById('modalNotice');
+    if (el) el.classList.remove('active');
+}
+
+async function prefillNoticeAtaNumber() {
+    const input = document.getElementById('noticeAtaNumber');
+    if (!input) return;
+    if ((input.value || '').trim()) return;
+
+    try {
+        const resp = await apiGet(`project/${PROJECT_ID}/atas`);
+        const items = (resp && (resp.items || resp.atas || resp.data?.items)) || [];
+        let maxId = 0;
+        for (const it of items) {
+            if (it && typeof it.id === 'number' && it.id > maxId) maxId = it.id;
+        }
+        const next = maxId + 1 || 1;
+        input.value = String(next);
+    } catch (e) {
+        console.warn('Não foi possível obter próximo número de ATA', e?.message || e);
+    }
+}
+
+function confirmGenerateNotice() {
+    const ataInput = document.getElementById('noticeAtaNumber');
+    const dateInput = document.getElementById('noticeDate');
+    const timeInput = document.getElementById('noticeTime');
+    const roomInput = document.getElementById('noticeRoom');
+    
+    window.__noticeAtaNumber = ataInput ? ataInput.value : '';
+    window.__noticeDate = dateInput ? dateInput.value : '';
+    window.__noticeTime = timeInput ? timeInput.value : '';
+    window.__noticeRoom = roomInput ? roomInput.value : '';
+    
+    closeNoticeModal();
+    generateNoticePDF();
+}
+
+function generateNoticePDF() {
+    if (!projectData) {
+        showToast('Erro ao gerar PDF: dados do projeto não carregados', 'error');
+        return;
+    }
+
+    try {
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+
+        const pageWidth = doc.internal.pageSize.width;
+        const pageHeight = doc.internal.pageSize.height;
+        const margin = 20;
+        const lineHeight = 6;
+
+        // Dados
+        const ataNumero = window.__noticeAtaNumber || '';
+        const dataStr = window.__noticeDate || '';
+        const horario = window.__noticeTime || '';
+        const sala = window.__noticeRoom || '';
+        
+        // Formatação da data (de YYYY-MM-DD para DD/MM/YYYY)
+        let dataFormatada = dataStr;
+        if (dataStr && dataStr.includes('-')) {
+            const [y, m, d] = dataStr.split('-');
+            dataFormatada = `${d}/${m}/${y}`;
+        }
+
+        // Alunos (todos os estudantes do projeto)
+        const alunosNomes = (projectData.students || []).map(s => s.name).join(' e ');
+        
+        // Orientador (primeiro professor)
+        const orientadorNome = (projectData.teachers && projectData.teachers[0]?.name) || 'Não definido';
+
+        let yPos = 25;
+
+        // ATA Nº no topo esquerdo
+        doc.setFontSize(10);
+        doc.setFont(undefined, 'bold');
+        doc.text(`ATA Nº ${ataNumero}`, margin, yPos);
+        yPos += lineHeight * 2;
+
+        // Info: Data, Horário, Sala
+        doc.setFontSize(11);
+        doc.setFont(undefined, 'normal');
+        const infoLine = `Data: ${dataFormatada}   Horário: ${horario}   Sala: ${sala}`;
+        doc.text(infoLine, margin, yPos);
+        yPos += lineHeight * 2;
+
+        // Box com informações principais
+        const boxStartY = yPos;
+        const boxPadding = 10;
+        const boxContentStartY = yPos + boxPadding;
+        
+        doc.setFont(undefined, 'normal');
+        doc.setFontSize(11);
+        
+        // Texto dentro do box
+        let boxYPos = boxContentStartY;
+        const boxMaxWidth = pageWidth - (2 * margin) - (2 * boxPadding);
+        
+        const bancaText = `Banca dos alunos ${alunosNomes}`;
+        const bancaLines = doc.splitTextToSize(bancaText, boxMaxWidth);
+        doc.text(bancaLines, margin + boxPadding, boxYPos);
+        boxYPos += (bancaLines.length * lineHeight) + 4;
+        
+        const orientadorText = `Orientador: ${orientadorNome}`;
+        doc.text(orientadorText, margin + boxPadding, boxYPos);
+        boxYPos += lineHeight + 4;
+        
+        // Altura do box
+        const boxHeight = boxYPos - boxContentStartY + boxPadding;
+        
+        // Desenhar o retângulo
+        doc.setDrawColor(0, 0, 0);
+        doc.setLineWidth(0.5);
+        doc.rect(margin, boxStartY, pageWidth - (2 * margin), boxHeight);
+        
+        yPos = boxStartY + boxHeight + 10;
+
+        // Textos informativos
+        doc.setFontSize(10);
+        doc.setFont(undefined, 'normal');
+        
+        const texto1 = 'Professor orientador, por favor, não esqueça de preencher os dados do Termo de Autorização para o repositório com o seu RG e assinatura e solicitar aos alunos que preencham essa ficha com RG, e-mail e assinatura.';
+        const linhas1 = doc.splitTextToSize(texto1, pageWidth - (2 * margin));
+        doc.text(linhas1, margin, yPos);
+        yPos += (linhas1.length * lineHeight) + 8;
+        
+        const texto2 = 'Nesses papéis estão os certificados de orientação e de participação das bancas, porém, posteriormente, após confirmação da banca, serão enviados em formato digital.';
+        const linhas2 = doc.splitTextToSize(texto2, pageWidth - (2 * margin));
+        doc.text(linhas2, margin, yPos);
+        yPos += (linhas2.length * lineHeight) + 8;
+        
+        // Período de entrega (calcular data +3 dias úteis como exemplo)
+        let dataEntrega = '';
+        if (dataStr) {
+            const dateObj = new Date(dataStr + 'T12:00:00');
+            dateObj.setDate(dateObj.getDate() + 3);
+            const ddE = String(dateObj.getDate()).padStart(2, '0');
+            const mmE = String(dateObj.getMonth() + 1).padStart(2, '0');
+            const yyE = dateObj.getFullYear();
+            
+            dateObj.setDate(dateObj.getDate() + 2);
+            const ddF = String(dateObj.getDate()).padStart(2, '0');
+            const mmF = String(dateObj.getMonth() + 1).padStart(2, '0');
+            const yyF = dateObj.getFullYear();
+            
+            dataEntrega = `${ddE} a ${ddF} de ${['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro'][dateObj.getMonth()]} de ${yyF}`;
+        }
+        
+        const texto3 = `O período de entrega da versão final corrigida será de ${dataEntrega || '[definir]'}, pelo Teams.`;
+        const linhas3 = doc.splitTextToSize(texto3, pageWidth - (2 * margin));
+        doc.text(linhas3, margin, yPos);
+
+        // Nome do arquivo
+        const safeStudent = alunosNomes.replace(/[^a-z0-9]/gi, '_').substring(0, 50);
+        const fileName = `AVISO_BANCA_${safeStudent}_${Date.now()}.pdf`;
+
+        // Upload para backend
+        const pdfBlob = doc.output('blob');
+        const pdfFile = new File([pdfBlob], fileName, { type: 'application/pdf' });
+        const formData = new FormData();
+        formData.append('files[]', pdfFile);
+
+        apiUpload(`project/${PROJECT_ID}/files`, formData)
+            .then(async (resp) => {
+                if (resp?.success) {
+                    let fileId = null;
+
+                    // Extrair file_id (mesmo esquema da ata de defesa)
+                    if (!fileId && typeof resp.file_id === 'number') fileId = resp.file_id;
+                    if (!fileId && typeof resp.id === 'number') fileId = resp.id;
+                    if (!fileId && resp.file) {
+                        const f = resp.file;
+                        fileId = f.id || f.file_id || null;
+                    }
+
+                    const candidatesArrays = [resp.saved, resp.files, resp.uploaded, resp.items, resp.data?.files, resp.data?.items].filter(a => Array.isArray(a));
+                    for (const arr of candidatesArrays) {
+                        if (fileId) break;
+                        if (arr.length && typeof arr[0] === 'number') {
+                            fileId = arr[arr.length - 1];
+                            break;
+                        }
+                        const exact = arr.find(o => (o?.name === fileName) || (o?.original_name === fileName));
+                        const contains = exact || arr.find(o => (o?.name || o?.original_name || '').includes(fileName));
+                        const obj = contains || arr[arr.length - 1];
+                        if (obj) fileId = obj.id || obj.file_id || null;
+                    }
+
+                    if (!fileId) {
+                        try {
+                            const listResp = await apiGet(`project/${PROJECT_ID}/files`);
+                            const listArrays = [listResp.files, listResp.items, listResp.data?.files, listResp.data?.items].filter(a => Array.isArray(a));
+                            for (const arr of listArrays) {
+                                const exact = arr.find(f => (f?.name === fileName) || (f?.original_name === fileName));
+                                const contains = exact || arr.find(f => (f?.name || f?.original_name || '').includes(fileName));
+                                if (contains) { fileId = contains.id || contains.file_id; break; }
+                            }
+                        } catch (e) {
+                            console.warn('Não foi possível listar arquivos para achar file_id do aviso', e?.message || e);
+                        }
+                    }
+
+                    // Registrar no backend (mesmo endpoint de atas, mas com type diferente se necessário)
+                    if (fileId) {
+                        try {
+                            const payloadAta = {
+                                file_id: fileId,
+                                student_name: alunosNomes,
+                                title: `Aviso de Banca - ${dataFormatada}`,
+                                result: 'pendente',
+                                location: sala,
+                                started_at: `${dataStr}T${horario}:00-03:00`
+                            };
+                            await apiPost(`project/${PROJECT_ID}/atas`, payloadAta);
+                        } catch (e) {
+                            console.warn('Registro de aviso não criado (endpoint indisponível?)', e?.message || e);
+                        }
+                    } else {
+                        console.warn('file_id do aviso não encontrado após upload');
+                    }
+
+                    showToast('Aviso para banca gerado e salvo no projeto', 'success');
+                    if (typeof loadProjectFiles === 'function') {
+                        loadProjectFiles().catch(() => {});
+                    }
+                } else {
+                    showToast('Aviso gerado, mas falhou ao salvar no projeto', 'error');
+                }
+            })
+            .catch(() => {
+                showToast('Aviso gerado, mas falhou ao salvar no projeto', 'error');
+            })
+            .finally(() => {
+                // Download local
+                doc.save(fileName);
+            });
+
+    } catch (error) {
+        console.error('Erro ao gerar PDF de aviso:', error);
+        showToast('Erro ao gerar PDF: ' + error.message, 'error');
     }
 }
