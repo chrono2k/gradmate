@@ -1676,6 +1676,11 @@ function applyProjectPermissions(user) {
     if (authority === 'student' || authority === 'aluno') {
         disableStudentActions();
     }
+
+    // Se for professor/teacher, restringe algumas áreas
+    if (authority === 'teacher' || authority === 'professor') {
+        disableTeacherActions();
+    }
 }
 
 function disableStudentActions() {
@@ -1753,6 +1758,56 @@ function disableStudentActions() {
             el.style.display = 'none';
         }
     });
+}
+
+function disableTeacherActions() {
+    // Não exibir relatórios do lado esquerdo e bloquear criação/edição
+    const reportsCard = document.querySelector('.card .card-title i.fas.fa-comments')?.closest('.card');
+    if (reportsCard) {
+        reportsCard.style.display = 'none';
+    }
+
+    // Remover botão de gerar relatório, se existir
+    document.querySelectorAll('button[onclick="openNewReportModal()"]').forEach(btn => {
+        btn.disabled = true;
+        btn.style.display = 'none';
+    });
+
+    // Professores não devem alterar curso no projeto
+    const courseSelect = document.getElementById('editProjectCourse');
+    if (courseSelect) {
+        courseSelect.disabled = true;
+        courseSelect.style.pointerEvents = 'none';
+        courseSelect.style.opacity = '0.7';
+    }
+
+    // Professores não podem adicionar/remover professores e alunos
+    const addBtns = [
+        'button[onclick="openAddTeacherModal()"]',
+        'button[onclick="openAddStudentModal()"]'
+    ];
+    addBtns.forEach(selector => {
+        document.querySelectorAll(selector).forEach(btn => {
+            btn.disabled = true;
+            btn.style.display = 'none';
+        });
+    });
+
+    // Desabilitar botões de remover professor/aluno
+    document.addEventListener('click', (e) => {
+        const btn = e.target.closest('button[onclick^="removeTeacher"], button[onclick^="removeStudent"];');
+        if (btn) {
+            e.stopPropagation();
+            e.preventDefault();
+            showToast('Ação não permitida', 'Professores não podem gerenciar membros do projeto', 'warning');
+        }
+    }, true);
+
+    // Ocultar as abas/cartões de Professores e Alunos
+    const teachersCard = document.querySelector('.card .card-title i.fas.fa-chalkboard-teacher')?.closest('.card');
+    if (teachersCard) teachersCard.style.display = 'none';
+    const studentsCard = document.querySelector('.card .card-title i.fas.fa-user-graduate')?.closest('.card');
+    if (studentsCard) studentsCard.style.display = 'none';
 }
 
 function disableRemoveButtons() {

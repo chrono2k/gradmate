@@ -2,10 +2,35 @@ let cursos = [];
 let editingId = null;
 let currentPage = 1;
 const itemsPerPage = 10;
+let isTeacher = false;
 
 document.addEventListener('DOMContentLoaded', () => {
     loadCursos();
 });
+
+// Aplicar permissões quando o usuário é carregado
+document.addEventListener('userLoaded', (event) => {
+    const user = event.detail;
+    const authority = String(user?.authority || '').toLowerCase();
+    if (authority === 'teacher' || authority === 'professor') {
+        isTeacher = true;
+        applyTeacherCourseRestrictions();
+        // Recarrega a tabela para refletir remoção dos botões de ação
+        if (Array.isArray(cursos) && cursos.length) {
+            renderCursosTable(cursos);
+            renderPagination(cursos);
+        }
+    }
+});
+
+function applyTeacherCourseRestrictions() {
+    // Oculta o botão "Novo Curso"
+    const newBtn = document.querySelector('button.btn.btn-primary[onclick="openModal()"]');
+    if (newBtn) {
+        newBtn.disabled = true;
+        newBtn.style.display = 'none';
+    }
+}
 
 
 function renderCursosTable(filteredCursos) {
@@ -36,6 +61,7 @@ function renderCursosTable(filteredCursos) {
                 </span>
             </td>
             <td>
+                ${isTeacher ? '' : `
                 <div class="action-buttons">
                     <button class="btn btn-warning btn-icon" onclick="editCourse(${curso.id})" title="Editar">
                         <i class="fas fa-edit"></i>
@@ -43,7 +69,7 @@ function renderCursosTable(filteredCursos) {
                     <button class="btn btn-danger btn-icon" onclick="deleteCourse(${curso.id})" title="Excluir">
                         <i class="fas fa-trash"></i>
                     </button>
-                </div>
+                </div>`}
             </td>
         </tr>
     `).join('');
@@ -177,6 +203,10 @@ function updateStats() {
  */
 
 function openModal() {
+    if (isTeacher) {
+        showToast('Ação não permitida', 'Professores não podem cadastrar cursos', 'warning');
+        return;
+    }
     editingId = null;
     document.getElementById('modalTitle').textContent = 'Novo Curso';
     document.getElementById('courseForm').reset();
@@ -203,6 +233,10 @@ function closeModal() {
  * Salvar curso (criar ou editar)
  */
 async function saveCourse() {
+    if (isTeacher) {
+        showToast('Ação não permitida', 'Professores não podem alterar cursos', 'warning');
+        return;
+    }
     const nome = document.getElementById('courseName').value.trim();
     const observacao = document.getElementById('courseObservation').value.trim();
 
@@ -258,6 +292,10 @@ async function saveCourse() {
  * Editar curso existente
  */
 async function editCourse(id) {
+    if (isTeacher) {
+        showToast('Ação não permitida', 'Professores não podem editar cursos', 'warning');
+        return;
+    }
     try {
         const response = await apiGet(`course/${id}`);
 
@@ -286,6 +324,10 @@ async function editCourse(id) {
  * Deletar curso
  */
 async function deleteCourse(id) {
+    if (isTeacher) {
+        showToast('Ação não permitida', 'Professores não podem ativar/desativar cursos', 'warning');
+        return;
+    }
     const curso = cursos.find(c => c.id === id);
     if (!curso) return;
     const courseStatus = curso.status.toLowerCase()=='ativo'

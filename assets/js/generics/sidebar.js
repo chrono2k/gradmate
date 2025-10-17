@@ -23,6 +23,18 @@ function applySidebarPermissions(user) {
         // Também oculta seções inteiras se ficarem vazias
         hideEmptySections();
     }
+
+    // Regras para professor: não vê cadastro de usuário, cursos, professores e alunos
+    if (authority === 'teacher' || authority === 'professor') {
+        hideMenuItemsByText([
+            'Cadastrar Usuário',
+            'Cursos',
+            'Professores',
+            'Alunos'
+        ]);
+
+        hideEmptySections();
+    }
 }
 
 function hideMenuItemsByText(textArray) {
