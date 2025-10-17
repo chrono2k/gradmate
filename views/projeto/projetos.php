@@ -128,6 +128,16 @@ include("../generics/sidebar.php");
                     </div>
 
                     <div class="form-group">
+                        <label for="projectCourse">
+                            <i class="fas fa-graduation-cap"></i>
+                            Curso
+                        </label>
+                        <select id="projectCourse" required>
+                            <option value="">Carregando cursos...</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
                         <label for="courseObservation">
                             <i class="fas fa-comment-alt"></i>
                             Observação

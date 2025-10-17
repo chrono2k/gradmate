@@ -1,10 +1,12 @@
 let projetos = [];
+let allCourses = [];
 let editingId = null;
 let currentPage = 1;
 const itemsPerPage = 10;
 
 document.addEventListener('DOMContentLoaded', () => {
     loadProjetos();
+    loadCourses();
 });
 
 
@@ -176,6 +178,30 @@ function updateStats() {
 }
 
 /**
+ * Carregar lista de cursos
+ */
+async function loadCourses() {
+    try {
+        const response = await apiGet('course');
+        allCourses = response.courses || response;
+
+        const select = document.getElementById('projectCourse');
+        if (select) {
+            select.innerHTML = '<option value="">Selecione um curso...</option>' +
+                allCourses.map(course =>
+                    `<option value="${course.id}">${course.name}</option>`
+                ).join('');
+        }
+    } catch (error) {
+        console.error('Erro ao carregar cursos:', error);
+        const select = document.getElementById('projectCourse');
+        if (select) {
+            select.innerHTML = '<option value="">Erro ao carregar cursos</option>';
+        }
+    }
+}
+
+/**
  * Abrir modal para novo cadastro
  */
 
@@ -186,6 +212,10 @@ function openModal() {
     // Align with DOM: hidden input is 'projectId'
     const hiddenId = document.getElementById('projectId');
     if (hiddenId) hiddenId.value = '';
+
+    // Reset course select
+    const courseSelect = document.getElementById('projectCourse');
+    if (courseSelect) courseSelect.value = '';
 
     const overlay = document.getElementById('modalOverlay');
     overlay.classList.add('active');
@@ -211,9 +241,11 @@ async function saveCourse() {
     // Align field IDs with DOM structure in views/projeto/projetos.php
     const nameInput = document.getElementById('projectName');
     const obsInput = document.getElementById('courseObservation');
+    const courseSelect = document.getElementById('projectCourse');
 
     const nome = (nameInput?.value || '').trim();
     const observacao = (obsInput?.value || '').trim();
+    const courseId = courseSelect?.value ? parseInt(courseSelect.value) : null;
 
     if (!nome) {
         showToast('Erro', 'Por favor, preencha o nome do projeto', 'error');
@@ -222,6 +254,11 @@ async function saveCourse() {
 
     if (nome.length < 3) {
         showToast('Erro', 'O nome do projeto deve ter no mínimo 3 caracteres', 'error');
+        return;
+    }
+
+    if (!courseId) {
+        showToast('Erro', 'Por favor, selecione um curso', 'error');
         return;
     }
 
@@ -235,7 +272,8 @@ async function saveCourse() {
             const response = await apiPut('project/', {
                 id: editingId,
                 name: nome,
-                observation: observacao || null
+                observation: observacao || null,
+                courseId: courseId
             });
 
             if (response.success) {
@@ -245,7 +283,8 @@ async function saveCourse() {
             // Create new project
             const response = await apiPost('project/', {
                 name: nome,
-                observation: observacao || null
+                observation: observacao || null,
+                courseId: courseId
             });
 
             if (response.success) {
