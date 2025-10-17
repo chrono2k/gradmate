@@ -32,11 +32,6 @@ function renderProjetosTable(filteredProjetos) {
                     ${projeto.course?.name || 'Sem Curso'}
                 </div>
             </td>
-<!--            <td>-->
-<!--                <div class="description" title="${projeto.description || ''}">-->
-<!--                    ${projeto.description || 'Sem descrição'}-->
-<!--                </div>-->
-<!--            </td>-->
             <td>
                 <div class="observation" title="${projeto.observation || ''}">
                     ${projeto.observation || 'Sem observações'}
@@ -47,9 +42,7 @@ function renderProjetosTable(filteredProjetos) {
                     <button class="btn btn-warning btn-icon" onclick="editCourse(${projeto.id})" title="Editar">
                         <i class="fas fa-edit"></i>
                     </button>
-<!--                    <button class="btn btn-danger btn-icon" onclick="deleteCourse(${projeto.id})" title="Excluir">-->
-<!--                        <i class="fas fa-trash"></i>-->
-<!--                    </button>-->
+                
                 </div>
             </td>
         </tr>
@@ -95,7 +88,6 @@ async function loadProjetos() {
         const response = await apiGet('project/?status=all');
 
         if (response.success) {
-            console.log(response)
             projetos = response.projects;
             let filteredProjetos = projetos;
             if (searchTerm) {

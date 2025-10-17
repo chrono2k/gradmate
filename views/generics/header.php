@@ -62,11 +62,11 @@
                 </div>
                 <div class="form-group">
                     <label for="newPassword">Nova Senha</label>
-                    <input type="password" id="newPassword" class="form-control" required minlength="6">
+                    <input type="password" id="newPassword" class="form-control" required>
                 </div>
                 <div class="form-group">
                     <label for="confirmPassword">Confirmar Nova Senha</label>
-                    <input type="password" id="confirmPassword" class="form-control" required minlength="6">
+                    <input type="password" id="confirmPassword" class="form-control" required>
                 </div>
                 <div class="modal-actions">
                     <button type="button" class="btn btn-secondary" id="cancelPasswordChange">Cancelar</button>

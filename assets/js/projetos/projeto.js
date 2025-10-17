@@ -1056,7 +1056,7 @@ async function generateDefensePDF() {
         const maxWidth = pageWidth - (2 * margin);
         const lineHeight = 6;
 
-        // ============ CONSTANTES DO MODELO ============
+    // Constantes do modelo
         const instituicao = 'FACULDADE DE TECNOLOGIA DE GARÇA “DEPUTADO JULIO JULINHO MARCONDES DE MOURA”';
         const curso = 'CURSO SUPERIOR DE TECNOLOGIA';
         const cidadeUf = 'Garça/SP';
@@ -1079,28 +1079,25 @@ async function generateDefensePDF() {
             ? window.__defenseLocation.trim()
             : 'Sala Maker da Faculdade de Tecnologia de Garça "Deputado Júlio Julinho Marcondes de Moura"';
 
-    // ============ CABEÇALHO/TÍTULO ============
-    // Buscar todas as atas existentes para calcular o próximo número (busca SEMPRE atualizada)
+    // Cabeçalho/título: buscar atas existentes para calcular o próximo número
     let ataNumero = '1'; // padrão se não houver atas
     try {
     const atasResp = await apiGet(`project/atas?_=${Date.now()}`); // Cache bust (global)
         const atas = atasResp?.items || atasResp?.atas || atasResp?.data?.items || [];
         
-        console.log('Total de atas retornadas pelo backend:', atas.length);
-        console.log('Atas encontradas:', atas);
         
         // Encontrar o MAIOR ID entre TODAS as atas (defesa + aviso)
         let maxId = 0;
         for (const ata of atas) {
             if (ata.id > maxId) {
                 maxId = ata.id;
-                console.log('Maior ID encontrado:', maxId, '- Tipo:', ata.result);
+                
             }
         }
         
         // Próximo número = maior ID + 1 (numeração global única)
         ataNumero = String(maxId + 1);
-        console.log('✅ Número da nova ATA:', ataNumero, '(maior ID global:', maxId, ')');
+        
     } catch (e) {
         console.warn('Não foi possível buscar atas existentes, usando número padrão 1', e?.message || e);
         ataNumero = '1';
@@ -1135,7 +1132,7 @@ async function generateDefensePDF() {
         doc.text(linhas2, margin, yPos);
         yPos += (linhas2.length * lineHeight) + 12;
 
-        // ============ ASSINATURAS ============
+    // Assinaturas
         if (yPos > 220) {
             doc.addPage();
             yPos = 25;
@@ -1173,7 +1170,7 @@ async function generateDefensePDF() {
             });
         }
 
-        // ============ RODAPÉ (Local/Data + paginação) ============
+    // Rodapé (local/data + paginação)
         const totalPages = doc.internal.getNumberOfPages();
         const dataRodape = `${cidadeUf}, ${dd} de ${mmNome} de ${yyyy}`;
         for (let i = 1; i <= totalPages; i++) {
@@ -1183,7 +1180,7 @@ async function generateDefensePDF() {
             doc.text(`Página ${i} de ${totalPages}`, pageWidth / 2, doc.internal.pageSize.height - 10, { align: 'center' });
         }
 
-        // ============ UPLOAD + DOWNLOAD ============
+    // Upload e download
         const safeStudent = alunoNome.replace(/[^a-z0-9]/gi, '_');
         const fileName = `ATA_DEFESA_${safeStudent}_${Date.now()}.pdf`;
 
@@ -1253,9 +1250,7 @@ async function generateDefensePDF() {
                                 started_at: `${yyyy}-${String(now.getMonth()+1).padStart(2,'0')}-${dd}T${hh}:${min}:00-03:00`
                             };
                             const ataResp = await apiPost(`project/${PROJECT_ID}/atas`, payloadAta);
-                            console.log('✅ Ata criada no backend:', ataResp);
-                            console.log('   - ID retornado:', ataResp?.ata?.id || ataResp?.id);
-                            console.log('   - Número usado:', ataNumero);
+                            
                         } catch (e) {
                             console.error('❌ Erro ao criar registro de ata:', e?.message || e);
                             console.warn('Registro de ata não criado (endpoint indisponível?)', e?.message || e);
@@ -1338,7 +1333,7 @@ async function prefillAtaNumber() {
         // Próximo número = maior ID + 1
         const next = maxId + 1;
         input.value = String(next);
-        console.log('Número sugerido para nova ATA:', next, '(maior ID:', maxId, ')');
+        
     } catch (e) {
         // Se não houver endpoint ainda, começa do 1
         console.warn('Não foi possível obter próximo número de ATA', e?.message || e);
@@ -1405,7 +1400,7 @@ async function prefillNoticeAtaNumber() {
         // Próximo número = maior ID + 1
         const next = maxId + 1;
         input.value = String(next);
-        console.log('Número sugerido para novo Aviso:', next, '(maior ID:', maxId, ')');
+        
     } catch (e) {
         console.warn('Não foi possível obter próximo número de ATA', e?.message || e);
         input.value = '1';
@@ -1543,7 +1538,7 @@ function generateNoticePDF() {
         doc.text(linhas2, margin, yPos);
         yPos += (linhas2.length * lineHeight) + 8;
         
-        // Período de entrega (calcular data +3 dias úteis como exemplo)
+    // Período de entrega (ex.: data + 3 dias úteis)
         let dataEntrega = '';
         if (dataStr) {
             const dateObj = new Date(dataStr + 'T12:00:00');
@@ -1626,8 +1621,7 @@ function generateNoticePDF() {
                                 location: sala,
                                 started_at: `${dataStr}T${horario}:00-03:00`
                             };
-                            const ataResp = await apiPost(`project/${PROJECT_ID}/atas`, payloadAta);
-                            console.log('Aviso criado:', ataResp);
+                            await apiPost(`project/${PROJECT_ID}/atas`, payloadAta);
                         } catch (e) {
                             console.warn('Registro de aviso não criado (endpoint indisponível?)', e?.message || e);
                         }
@@ -1656,6 +1650,203 @@ function generateNoticePDF() {
             showToast('Erro ao gerar PDF: ' + error.message, 'error');
         }
     })(); // Executa a função async imediatamente
+}
+
+// ========================= Certificado de Orientação (Professores) =========================
+function openCertificateModal() {
+    const el = document.getElementById('modalCertificate');
+    if (!el) return;
+    const now = new Date();
+    const semester = now.getMonth() < 6 ? '1º semestre' : '2º semestre';
+    const year = now.getFullYear();
+    const semSel = document.getElementById('certificateSemester');
+    const yearInput = document.getElementById('certificateYear');
+    if (semSel) semSel.value = semester;
+    if (yearInput) yearInput.value = year;
+    el.classList.add('active');
+    document.body.style.overflow = 'hidden';
+}
+
+function closeCertificateModal() {
+    const el = document.getElementById('modalCertificate');
+    if (!el) return;
+    el.classList.remove('active');
+    document.body.style.overflow = 'auto';
+}
+
+function confirmGenerateCertificate() {
+    const semSel = document.getElementById('certificateSemester');
+    const yearInput = document.getElementById('certificateYear');
+    const semester = (semSel && semSel.value) || '';
+    const year = (yearInput && yearInput.value) || '';
+    if (!semester || !year) {
+        showToast('Erro', 'Informe o semestre e o ano', 'error');
+        return;
+    }
+    closeCertificateModal();
+    const semesterYear = `${semester} de ${year}`;
+    generateAdvisorCertificates(semesterYear);
+}
+
+function loadImageElement(url) {
+    return new Promise((resolve, reject) => {
+        const img = new Image();
+        img.onload = () => resolve(img);
+        img.onerror = (e) => reject(e);
+        img.src = url;
+    });
+}
+
+async function generateAdvisorCertificates(semesterYear) {
+    if (!projectData) {
+        showToast('Erro', 'Dados do projeto não carregados', 'error');
+        return;
+    }
+
+    const teachers = Array.isArray(projectData.teachers) ? projectData.teachers : [];
+    if (!teachers.length) {
+        showToast('Atenção', 'Projeto sem orientadores', 'error');
+        return;
+    }
+
+    const students = Array.isArray(projectData.students) ? projectData.students : [];
+    const studentNames = students.map(s => s.name).filter(Boolean);
+    const curso = projectData?.course?.name || '__________________';
+    const tituloTrabalho = (projectData?.name || '__________________').toUpperCase();
+
+    // Aluno/alunos e preposição pelo/pelos
+    let alunoLabel = 'aluno';
+    let peloLabel = 'pelo';
+    let nomesAlunos = '__________________';
+    if (studentNames.length === 1) {
+        nomesAlunos = studentNames[0];
+        alunoLabel = 'aluno';
+        peloLabel = 'pelo';
+    } else if (studentNames.length > 1) {
+        const last = studentNames[studentNames.length - 1];
+        const firsts = studentNames.slice(0, -1);
+        nomesAlunos = `${firsts.join(', ')} e ${last}`;
+        alunoLabel = 'alunos';
+        peloLabel = 'pelos';
+    }
+
+    // Recursos visuais
+    const logoPath = '../../assets/img/logo-2024.png';
+    const assinaturaPath = '../../assets/img/assinatura.png';
+    let logoImg = null;
+    let assinaturaImg = null;
+    try { logoImg = await loadImageElement(logoPath); } catch {}
+    try { assinaturaImg = await loadImageElement(assinaturaPath); } catch {}
+
+    const { jsPDF } = window.jspdf;
+
+    for (const teacher of teachers) {
+        const professorNome = teacher?.name || '__________________';
+        const doc = new jsPDF({ unit: 'mm', format: 'a4' });
+        const pageWidth = doc.internal.pageSize.getWidth();
+        const pageHeight = doc.internal.pageSize.getHeight();
+        const margin = 20; // ~2cm
+        const contentWidth = pageWidth - (2 * margin);
+        let y = margin;
+
+        // Fonte e espaçamento
+        try { doc.setFont('times', 'normal'); } catch { doc.setFont('helvetica', 'normal'); }
+        doc.setLineHeightFactor(1.5);
+
+        // Cabeçalho: logo
+        if (logoImg) {
+            const maxLogoW = Math.min(80, contentWidth); // até 80mm
+            const aspect = logoImg.naturalWidth / logoImg.naturalHeight;
+            const logoW = maxLogoW;
+            const logoH = logoW / (aspect || 1);
+            const x = (pageWidth - logoW) / 2;
+            doc.addImage(logoImg, 'PNG', x, y, logoW, logoH);
+            y += logoH + 4;
+        }
+
+        // Linha horizontal (80% da largura)
+        const lineW = contentWidth * 0.8;
+        const lineX = (pageWidth - lineW) / 2;
+        doc.setLineWidth(0.4);
+        doc.line(lineX, y, lineX + lineW, y);
+        y += 6;
+
+        // Texto da instituição
+        try { doc.setFont('times', 'bold'); } catch { doc.setFont('helvetica', 'bold'); }
+        doc.setFontSize(12);
+        doc.text('Fatec Garça – Fatec Júlio Julinho Marcondes de Moura', pageWidth / 2, y, { align: 'center' });
+
+        // Espaço antes do título (~1.5cm)
+        y += 15;
+
+        // Título
+        doc.setFontSize(22);
+        doc.text('C E R T I F I C A D O', pageWidth / 2, y, { align: 'center' });
+
+        // Espaço antes do corpo (~1cm)
+        y += 10;
+
+        // Corpo do texto (12pt, justificado)
+        try { doc.setFont('times', 'normal'); } catch { doc.setFont('helvetica', 'normal'); }
+        doc.setFontSize(12);
+        const corpo = `A Faculdade de Tecnologia de Garça "Deputado Júlio Julinho Marcondes de Moura" certifica, para os fins que se fizerem necessários, que o professor ${professorNome} orientou o Trabalho de Conclusão de Curso "${tituloTrabalho}", durante o ${semesterYear}, elaborado ${peloLabel} ${alunoLabel} ${nomesAlunos}, do curso de ${curso}.`;
+        const linhas = doc.splitTextToSize(corpo, contentWidth);
+        doc.text(linhas, margin, y, { align: 'justify' });
+        // Estimar avanço de y baseado em número de linhas (~6mm por linha com fator 1.5)
+        y += (linhas.length * 6 * 1.2) + 10; // +10mm de espaço antes da assinatura
+
+        // Assinatura (imagem)
+        if (assinaturaImg) {
+            const maxW = Math.min(70, contentWidth);
+            const aspect2 = assinaturaImg.naturalWidth / assinaturaImg.naturalHeight;
+            const w = maxW;
+            const h = w / (aspect2 || 1);
+            const x2 = (pageWidth - w) / 2;
+            doc.addImage(assinaturaImg, 'PNG', x2, y, w, h);
+            y += h + 4;
+        } else {
+            y += 14; // espaço reservado
+        }
+
+        // Nome de quem assina
+        try { doc.setFont('times', 'bold'); } catch { doc.setFont('helvetica', 'bold'); }
+        doc.setFontSize(11);
+        doc.text('Prof.ª Dr.ª Larissa Pavarini da Luz', pageWidth / 2, y, { align: 'center' });
+        y += 6;
+
+        // Cargo/Função (pode quebrar em 2 linhas)
+        try { doc.setFont('times', 'normal'); } catch { doc.setFont('helvetica', 'normal'); }
+        doc.setFontSize(10);
+        const cargo = 'Coordenadora do Curso de Tecnologia em Análise e Desenvolvimento de Sistemas';
+        const cargoLinhas = doc.splitTextToSize(cargo, contentWidth);
+        doc.text(cargoLinhas, pageWidth / 2, y, { align: 'center' });
+
+        // Exportar: upload ao projeto e download local
+        const studentSafe = (studentNames.join('_') || 'Aluno').replace(/[^a-z0-9_]/gi, '_').slice(0, 60);
+        const teacherSafe = (professorNome || 'Professor').replace(/[^a-z0-9_]/gi, '_').slice(0, 40);
+        const fileName = `CERTIFICADO_ORIENTACAO_${teacherSafe}_${studentSafe}_${Date.now()}.pdf`;
+
+        const pdfBlob = doc.output('blob');
+        const pdfFile = new File([pdfBlob], fileName, { type: 'application/pdf' });
+        const formData = new FormData();
+        formData.append('files[]', pdfFile);
+
+        try {
+            const resp = await apiUpload(`project/${PROJECT_ID}/files`, formData);
+            if (resp?.success) {
+                showToast(`Certificado gerado e salvo para ${professorNome}`, 'success');
+            } else {
+                showToast(`Certificado gerado para ${professorNome}, mas não salvo no projeto`, 'warning');
+            }
+        } catch (e) {
+            showToast(`Certificado gerado para ${professorNome}, falha no upload`, 'warning');
+        } finally {
+            // Download local para o usuário
+            try { doc.save(fileName); } catch {}
+        }
+    }
+
+    try { await loadProjectFiles(); } catch {}
 }
 
 // ========================= Permissões de Usuário =========================
@@ -1758,6 +1949,13 @@ function disableStudentActions() {
             el.style.display = 'none';
         }
     });
+
+    // Ocultar geração de certificado para alunos
+    const certBtn = document.getElementById('btnGenerateCertificate');
+    if (certBtn) {
+        certBtn.disabled = true;
+        certBtn.style.display = 'none';
+    }
 }
 
 function disableTeacherActions() {

@@ -213,6 +213,10 @@ include("../generics/sidebar.php");
                             <i class="fas fa-bell"></i>
                             Gerar Aviso para Banca
                         </button>
+                        <button id="btnGenerateCertificate" class="btn btn-secondary" onclick="openCertificateModal()">
+                            <i class="fas fa-certificate"></i>
+                            Gerar Certificado de Orientação
+                        </button>
                     </div>
                 </div>
             </div>
@@ -486,6 +490,41 @@ include("../generics/sidebar.php");
             <div class="modal-footer">
                 <button class="btn btn-secondary" onclick="closeModal('modalAddGuest')">Cancelar</button>
                 <button class="btn btn-success" onclick="confirmAddGuests()">Adicionar Selecionados</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Certificado de Orientação -->
+    <div class="modal-overlay" id="modalCertificate">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 class="modal-title">
+                    <i class="fas fa-certificate"></i>
+                    Certificado de Orientação
+                </h3>
+                <button class="modal-close" onclick="closeCertificateModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="info-field">
+                    <label for="certificateSemester">Semestre</label>
+                    <select id="certificateSemester">
+                        <option value="1º semestre">1º semestre</option>
+                        <option value="2º semestre">2º semestre</option>
+                    </select>
+                </div>
+                <div class="info-field">
+                    <label for="certificateYear">Ano</label>
+                    <input type="number" id="certificateYear" min="2000" max="2100" placeholder="Ex.: 2025" />
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeCertificateModal()">Cancelar</button>
+                <button class="btn btn-success" onclick="confirmGenerateCertificate()">
+                    <i class="fas fa-file-pdf"></i>
+                    Gerar Certificado(s)
+                </button>
             </div>
         </div>
     </div>

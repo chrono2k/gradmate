@@ -5,7 +5,7 @@
 }
 
 :root {
-    --primary: #000000;
+    --primary: #cccccc;
     --primary-dark: rgba(8, 42, 94, 0.58);
     --secondary: #ec4899;
     --dark: #1e293b;
@@ -517,13 +517,14 @@ td {
 }
 
 .course-icon {
+    
     width: 40px;
     height: 40px;
     min-width: 40px;
     min-height: 40px;
     flex-shrink: 0;
     border-radius: 10px;
-    background: linear-gradient(135deg, var(--primary), var(--secondary));
+    background: linear-gradient(135deg, #e16464, #952410);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -578,9 +579,9 @@ td {
     height: 100%;
     background: rgba(0, 0, 0, 0.7);
     backdrop-filter: blur(5px);
-    z-index: 10000; /* Aumentei bastante */
+    z-index: 10000;
     animation: fadeIn 0.3s ease;
-    padding: 20px; /* Adicionar padding */
+    padding: 20px;
 }
 
 .modal-overlay.active {
@@ -1006,7 +1007,7 @@ td {
 }
 
 .modal .info-field input {
-    box-shadow: inset 2px 2px 5px #00000063, inset -3px -3px 7px #ffffff21;
+    box-shadow: inset 2px 2px 5px #00000063, inset -3px -3px 7px #ffffff21 !important;
 }
 
 .btn-primary {

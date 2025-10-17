@@ -20,7 +20,6 @@ function renderStudentsTable(filteredStudents) {
         <tr>
             <td>
                 <div class="student-name">
-<!--                    <div class="student-icon">${aluno.image}</div>-->
                     ${aluno.name}
                 </div>
             </td>
@@ -40,7 +39,6 @@ function renderStudentsTable(filteredStudents) {
                     ${aluno.observation || 'Sem observações'}
                 </div>
             </td>
-<!--            TODO fazer a busca de quantidade de projetos ativos-->
             <td>1</td>
             <td>
                 <span class="badge ${aluno.user.status.toLowerCase() === 'ativo' ? 'badge-active' : 'badge-inactive'}">
@@ -162,8 +160,7 @@ function formatDate(dateString) {
 /**
  * Atualizar estatísticas dos cards
  */
-function updateStats() { // TODO terminar aqui depois o card de busca
-    console.log(alunos)
+function updateStats() {
     document.getElementById('totalAlunos').textContent = alunos.length;
     document.getElementById('alunosFormados').textContent = alunos.filter(a => a.status === 'formado').length;
     document.getElementById('alunosComPendencia').textContent = alunos.filter(a => a.status === 'cursando').length;
@@ -205,7 +202,7 @@ async function saveStudent() {
     const email = document.getElementById('studentEmail').value.trim();
     const registration = document.getElementById('studentRegistration').value.trim();
     const observacao = document.getElementById('studentObservation').value.trim();
-    // todo adcionar img depois
+    // imagem opcional (futuro)
     const image = "";
     if (!nome) {
         showToast('Erro', 'Por favor, preencha o nome do aluno', 'error');
@@ -292,7 +289,6 @@ async function editStudent(id) {
 
         if (response.success) {
             const aluno = response.student;
-            console.log(aluno)
             editingId = id;
             document.getElementById('modalTitle').textContent = 'Editar Aluno';
             document.getElementById('studentId').value = aluno.id;

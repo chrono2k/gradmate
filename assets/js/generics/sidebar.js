@@ -10,7 +10,6 @@ function applySidebarPermissions(user) {
 
     const authority = String(user.authority).toLowerCase();
 
-    // Se for student, oculta itens restritos
     if (authority === 'student' || authority === 'aluno') {
         hideMenuItemsByText([
             'Alunos',
@@ -19,12 +18,9 @@ function applySidebarPermissions(user) {
             'Arquivos',
             'Cadastrar Usuário'
         ]);
-
-        // Também oculta seções inteiras se ficarem vazias
         hideEmptySections();
     }
 
-    // Regras para professor: não vê cadastro de usuário, cursos, professores e alunos
     if (authority === 'teacher' || authority === 'professor') {
         hideMenuItemsByText([
             'Cadastrar Usuário',
@@ -32,7 +28,6 @@ function applySidebarPermissions(user) {
             'Professores',
             'Alunos'
         ]);
-
         hideEmptySections();
     }
 }

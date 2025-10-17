@@ -20,7 +20,6 @@ function renderTeachersTable(filteredTeachers) {
         <tr>
             <td>
                 <div class="teacher-name">
-<!--                    <div class="teacher-icon">${professor.image}</div>-->
                     ${professor.name}
                 </div>
             </td>
@@ -34,7 +33,6 @@ function renderTeachersTable(filteredTeachers) {
                     ${professor.observation || 'Sem observações'}
                 </div>
             </td>
-<!--            TODO fazer a busca de quantidade de projetos ativos-->
             <td>1</td>
             <td>
                 <span class="badge ${professor.user.status.toLowerCase() === 'ativo' ? 'badge-active' : 'badge-inactive'}">
@@ -186,7 +184,7 @@ async function saveTeacher() {
     const nome = document.getElementById('teacherName').value.trim();
     const email = document.getElementById('teacherEmail').value.trim();
     const observacao = document.getElementById('teacherObservation').value.trim();
-    // todo adcionar img depois
+    // imagem opcional (futuro)
     const image = "";
     if (!nome) {
         showToast('Erro', 'Por favor, preencha o nome do professor', 'error');

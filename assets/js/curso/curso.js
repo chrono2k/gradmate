@@ -185,9 +185,7 @@ function updateStats() {
         const today = new Date();
         const diffTime = Math.abs(today - lastDate);
         const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-        console.log(diffDays)
-        console.log(diffDays)
-        console.log("diff")
+    // diffDays usado para exibir "Hoje/Ontem/xd atrás"
         if (diffDays === 0) {
             document.getElementById('ultimoCadastro').textContent = 'Hoje';
         } else if (diffDays === 1) {

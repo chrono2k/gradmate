@@ -1,27 +1,14 @@
-// ========================================
-// Admins Management - GradMate
-// ========================================
-
 // Global state
 let adminsData = [];
 let currentConfirmAction = null;
 let currentPasswordData = null;
 
-// ========================================
-// Initialization
-// ========================================
-
 document.addEventListener('DOMContentLoaded', () => {
     loadAdmins();
 });
 
-// ========================================
-// Load Admins
-// ========================================
-
 async function loadAdmins() {
     try {
-        // Backend actual endpoint: GET /auth/users (returns all users)
         const response = await apiGet('auth/users');
 
         if (response.success) {
@@ -39,9 +26,6 @@ async function loadAdmins() {
     }
 }
 
-// ========================================
-// Render Admins List
-// ========================================
 
 function renderAdminsTable() {
     const tbody = document.getElementById('adminsTbody');
@@ -83,9 +67,6 @@ function renderAdminsTable() {
     }).join('');
 }
 
-// ========================================
-// Empty State
-// ========================================
 
 function renderEmptyState() {
     const tbody = document.getElementById('adminsTbody');
@@ -101,9 +82,6 @@ function renderEmptyState() {
     `;
 }
 
-// ========================================
-// Helper Functions
-// ========================================
 
 function getInitials(name) {
     if (!name) return '?';
@@ -111,10 +89,6 @@ function getInitials(name) {
     if (parts.length === 1) return parts[0].charAt(0).toUpperCase();
     return (parts[0].charAt(0) + parts[parts.length - 1].charAt(0)).toUpperCase();
 }
-
-// ========================================
-// Modal: Create Admin
-// ========================================
 
 window.openCreateAdminModal = function() {
     const modal = document.getElementById('modalCreateAdmin');
@@ -138,7 +112,6 @@ window.confirmCreateAdmin = async function() {
     }
 
     try {
-        // Backend expects POST /auth/users with username, password, authority
         const tempPassword = generateTempPassword();
         const response = await apiPost('auth/users', {
             username: username,
@@ -167,9 +140,6 @@ window.confirmCreateAdmin = async function() {
     }
 };
 
-// ========================================
-// Modal: Password Display
-// ========================================
 
 function openPasswordModal() {
     const modal = document.getElementById('modalPasswordDisplay');
@@ -194,10 +164,6 @@ window.copyPasswordToClipboard = function() {
     });
 };
 
-// ========================================
-// Modal: Reset Password
-// ========================================
-
 window.openResetPasswordModal = function(adminId, username) {
     currentConfirmAction = {
         type: 'reset',
@@ -216,10 +182,6 @@ window.openResetPasswordModal = function(adminId, username) {
     document.getElementById('modalConfirm').classList.add('active');
 };
 
-// ========================================
-// Modal: Deactivate Admin
-// ========================================
-
 window.openDeactivateModal = function(adminId, username) {
     currentConfirmAction = {
         type: 'deactivate',
@@ -237,10 +199,6 @@ window.openDeactivateModal = function(adminId, username) {
 
     document.getElementById('modalConfirm').classList.add('active');
 };
-
-// ========================================
-// Modal: Confirm
-// ========================================
 
 window.closeConfirmModal = function() {
     const modal = document.getElementById('modalConfirm');
@@ -262,13 +220,9 @@ window.executeConfirmAction = async function() {
     closeConfirmModal();
 };
 
-// ========================================
-// Reset Admin Password
-// ========================================
 
 async function resetAdminPassword(adminId, username) {
     try {
-        // Backend expects POST /auth/users/<id>/password with { password }
         const newPassword = generateTempPassword();
         const response = await apiPost(`auth/users/${adminId}/password`, { password: newPassword });
 
@@ -289,13 +243,9 @@ async function resetAdminPassword(adminId, username) {
     }
 }
 
-// ========================================
-// Deactivate Admin
-// ========================================
 
 async function deactivateAdmin(adminId, username) {
     try {
-        // Backend supports PATCH /auth/users/<id> with { status: 'inativo' }
         const response = await apiPatch(`auth/users/${adminId}`, { status: 'inativo' });
 
         if (response.success) {
@@ -310,12 +260,8 @@ async function deactivateAdmin(adminId, username) {
     }
 }
 
-// ========================================
-// Toast Notifications
-// ========================================
 
 function showToast(message, type = 'info') {
-    // Prefer global VanillaToasts if available
     if (typeof VanillaToasts !== 'undefined') {
         VanillaToasts.create({
             positionClass: 'topRight',
@@ -329,7 +275,6 @@ function showToast(message, type = 'info') {
     alert(message);
 }
 
-// Utilities
 function generateTempPassword() {
     const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789@$!%*?&';
     let pass = '';

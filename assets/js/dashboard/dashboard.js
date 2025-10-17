@@ -1,5 +1,6 @@
 let selectedYear = new Date().getFullYear();
 let dateStatuses = {};
+let canEditDashboard = false; // Only admins can edit legend and toggle dates
 const months = [
     'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
     'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'
@@ -11,7 +12,6 @@ const sidebar = document.getElementById('sidebar');
 const topbar = document.getElementById('topbar');
 const mainContent = document.getElementById('mainContent');
 
-// ======= Legend labels (editable, local only) =======
 const LEGEND_KEY = 'gradmate_calendar_legend';
 const DEFAULT_LEGEND = {
     1: '4º termo – Upload do projeto (Teams)',
@@ -43,7 +43,6 @@ function applyLegendLabels() {
     let labels;
     const raw = localStorage.getItem(LEGEND_KEY);
     if (!raw) {
-        // Initialize from current DOM text to avoid surprising changes
         labels = {};
         items.forEach((item, i) => {
             const idx = i + 1;
@@ -60,13 +59,21 @@ function applyLegendLabels() {
         if (!span) return;
         span.textContent = labels[idx] || DEFAULT_LEGEND[idx];
         span.dataset.legendIndex = String(idx);
-        span.classList.add('legend-editable');
-        span.title = 'Clique para editar';
-        span.tabIndex = 0;
+        if (canEditDashboard) {
+            span.classList.add('legend-editable');
+            span.title = 'Clique para editar';
+            span.tabIndex = 0;
+        } else {
+            span.classList.remove('legend-editable');
+            span.removeAttribute('contenteditable');
+            span.title = 'Somente administradores podem editar';
+            span.tabIndex = -1;
+        }
     });
 }
 
 function setupLegendEditing() {
+    // Remove previous listeners by cloning nodes, then (re)attach depending on permission
     const beginEdit = (span) => {
         span.contentEditable = 'true';
         span.focus();
@@ -82,13 +89,20 @@ function setupLegendEditing() {
         span.textContent = text;
         span.contentEditable = 'false';
     };
-    document.querySelectorAll('.legend .legend-item span').forEach((span) => {
-        span.addEventListener('click', () => beginEdit(span));
-        span.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter') { e.preventDefault(); span.blur(); }
-            if (e.key === 'Escape') { e.preventDefault(); span.textContent = getLegendLabels()[Number(span.dataset.legendIndex)]; span.blur(); }
-        });
-        span.addEventListener('blur', () => commitEdit(span));
+    document.querySelectorAll('.legend .legend-item span').forEach((origSpan) => {
+        const span = origSpan.cloneNode(true);
+        origSpan.parentNode.replaceChild(span, origSpan);
+        if (canEditDashboard) {
+            span.addEventListener('click', () => beginEdit(span));
+            span.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') { e.preventDefault(); span.blur(); }
+                if (e.key === 'Escape') { e.preventDefault(); span.textContent = getLegendLabels()[Number(span.dataset.legendIndex)]; span.blur(); }
+            });
+            span.addEventListener('blur', () => commitEdit(span));
+        } else {
+            span.contentEditable = 'false';
+            span.style.cursor = 'default';
+        }
     });
 }
 
@@ -96,6 +110,17 @@ function setupLegendEditing() {
 document.addEventListener('DOMContentLoaded', () => {
     applyLegendLabels();
     setupLegendEditing();
+});
+
+// Apply RBAC once user info is available
+document.addEventListener('userLoaded', (event) => {
+    const user = event.detail;
+    const authority = String(user?.authority || '').toLowerCase();
+    canEditDashboard = authority === 'admin' || authority === 'administrator' || authority === 'role_admin';
+    applyLegendLabels();
+    setupLegendEditing();
+    // Re-render to (re)bind day click handlers with permission
+    renderYearCalendar(true);
 });
 
 async function loadStatus() {
@@ -155,7 +180,6 @@ document.addEventListener('click', (e) => {
 
 
 
-// Persistência local (opcional) removida para simplificar
 function renderYearCalendar(skipFetch = false) {
     document.getElementById('monthYear').textContent = `Ano ${selectedYear}`;
 
@@ -211,7 +235,13 @@ function renderYearCalendar(skipFetch = false) {
                     }
                 }
 
-                dayCell.addEventListener('click', () => toggleStatus(dateStr));
+                if (canEditDashboard) {
+                    dayCell.style.cursor = 'pointer';
+                    dayCell.addEventListener('click', () => toggleStatus(dateStr));
+                } else {
+                    dayCell.title = 'Somente administradores podem alterar';
+                    dayCell.style.cursor = 'default';
+                }
                 monthGrid.appendChild(dayCell);
             }
 
@@ -228,11 +258,14 @@ function renderYearCalendar(skipFetch = false) {
 }
 
 async function toggleStatus(dateStr) {
+    if (!canEditDashboard) {
+        showToast && showToast('Ação não permitida', 'Apenas administradores podem alterar o calendário', 'warning');
+        return;
+    }
     const prevStatus = dateStatuses[dateStr] || null;
     // Ciclo de status: null -> 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> null
     const nextStatus = prevStatus ? (prevStatus === 6 ? null : prevStatus + 1) : 1;
 
-    // Otimista: atualiza UI imediatamente
     if (nextStatus) {
         dateStatuses[dateStr] = nextStatus;
     } else {
@@ -240,16 +273,13 @@ async function toggleStatus(dateStr) {
     }
     renderYearCalendar(true);
 
-    // Tentativa de persistência
     try {
         if (nextStatus) {
             await apiPut('date', { date: dateStr, status: nextStatus });
         } else {
             await apiDelete('date', { date: dateStr });
         }
-        // sucesso: mantém otimista
     } catch (error) {
-        // Reverter em caso de erro
         if (prevStatus) {
             dateStatuses[dateStr] = prevStatus;
         } else {
@@ -277,6 +307,10 @@ function currentYear() {
 }
 
 function resetCalendar() {
+    if (!canEditDashboard) {
+        showToast && showToast('Ação não permitida', 'Apenas administradores podem limpar o calendário', 'warning');
+        return;
+    }
     if (confirm('Tem certeza que deseja limpar todos os status?')) {
         dateStatuses = {};
         // saveData();
@@ -287,7 +321,6 @@ function resetCalendar() {
 // loadData();
 renderYearCalendar();
 
-// ======= Exportar Calendário do Semestre (PDF) =======
 function downloadSemester() {
     const { jsPDF } = window.jspdf || window.jspdf || {};
     if (!jsPDF) {
@@ -303,7 +336,6 @@ function downloadSemester() {
     const pageWidth = doc.internal.pageSize.getWidth();
     const margin = 15;
 
-    // Cabeçalho centralizado
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(11);
     const line1 = 'Fatec Garça – Fatec Júlio Julinho Marcondes de Moura';
@@ -312,7 +344,6 @@ function downloadSemester() {
     const line2 = `Calendário de Orientação dos TCCs – ${selectedYear}/${semester}`;
     doc.text(line2, pageWidth / 2, 23, { align: 'center' });
 
-    // Tabela de calendários à esquerda (6 meses em 2 colunas x 3 linhas)
     const calStartX = margin;
     const calStartY = 48; // start a bit lower to detach from header
     const cellW = 5.5;
@@ -322,13 +353,11 @@ function downloadSemester() {
     const calRows = 3;
 
     const drawMonthTable = (mIndex, x, y) => {
-        // Título do mês
         doc.setFont('helvetica', 'bold');
         doc.setFontSize(10);
         doc.setTextColor(30);
         doc.text(months[mIndex], x + 19, y);
 
-        // Cabeçalho dias da semana
         const dw = ['D', 'S', 'T', 'Q', 'Q', 'S', 'S'];
         doc.setFont('helvetica', 'bold');
         doc.setFontSize(7);
@@ -337,7 +366,6 @@ function downloadSemester() {
             doc.text(dw[i], x + i * cellW + 2, y + 5.5);
         }
 
-        // Dias
         const firstDay = new Date(selectedYear, mIndex, 1);
         const lastDay = new Date(selectedYear, mIndex + 1, 0);
         const firstDayOfWeek = firstDay.getDay();
@@ -350,7 +378,6 @@ function downloadSemester() {
             const cx = x + col * cellW;
             const cy = y + 8 + row * cellH;
 
-            // Fundo do status com cantos arredondados
             if (status) {
                 const colorMap = {
                     1: [59, 130, 246], 2: [199, 17, 175], 3: [16, 185, 129],
@@ -360,11 +387,9 @@ function downloadSemester() {
                 doc.setFillColor(c[0], c[1], c[2]);
                 doc.roundedRect(cx, cy, cellW, cellH, 1, 1, 'F');
             }
-            // Borda mais suave
             doc.setDrawColor(226, 232, 240);
             doc.setLineWidth(0.2);
             doc.roundedRect(cx, cy, cellW, cellH, 1, 1);
-            // Número do dia com melhor posicionamento
             doc.setTextColor(30);
             doc.setFont('helvetica', 'normal');
             doc.setFontSize(7);
@@ -390,7 +415,6 @@ function downloadSemester() {
         }
     }
 
-    // Legenda à direita
     const legendX = 120;
     const legendY = calStartY;
     const labels = getLegendLabels();
@@ -422,12 +446,10 @@ function downloadSemester() {
         ly += 6;
     });
 
-    // Rodapé
     doc.setFontSize(7);
     doc.setTextColor(120);
     doc.text('Gerado por GradMate', margin, 285);
 
-    // Salvar
     const fileName = `Calendario_TCC_${selectedYear}_${semester}.pdf`;
     doc.save(fileName);
 }

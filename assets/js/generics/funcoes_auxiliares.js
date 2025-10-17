@@ -8,7 +8,6 @@ function valida_form(dados) {
                 'border-color': 'red',
                 'box-shadow': ' rgb(255 0 0 / 56%) 0.1em 0.1em 0.3em'
             });
-            console.log(auxiliar)
             aux = auxiliar.attr("placeholder")
             VanillaToasts.create({
                 positionClass: 'topRight',

@@ -1,4 +1,3 @@
-// Variável global para armazenar dados do usuário
 let currentUser = null;
 
 document.addEventListener('DOMContentLoaded', async () => {
@@ -21,7 +20,6 @@ async function loadUserInfo() {
         if (response.success && response.user) {
             currentUser = response.user;
             updateUserMenu(currentUser);
-            // Dispara evento customizado para outros scripts usarem
             document.dispatchEvent(new CustomEvent('userLoaded', { detail: currentUser }));
         }
     } catch (error) {
@@ -39,7 +37,6 @@ function updateUserMenu(user) {
         return;
     }
 
-    // Atualiza o nome (usa name do endpoint)
     if (user.name) {
         userName.textContent = user.name;
     }
@@ -59,14 +56,11 @@ function updateUserMenu(user) {
             'teacher': 'Professor',
             'administrator': 'Administrador'
         };
-        // Normalize to lowercase key lookup first, then fallback to raw
         const normalized = String(user.authority).toLowerCase();
         userRole.textContent = roleMap[normalized] || roleMap[user.authority] || user.authority;
     }
 
-    // Atualiza o avatar
     if (user.profilePictureUrl) {
-        // Se tem foto, substitui o div por uma imagem
         const img = document.createElement('img');
         img.src = user.profilePictureUrl;
         img.alt = user.name || 'Usuário';
@@ -74,7 +68,6 @@ function updateUserMenu(user) {
         userAvatar.replaceWith(img);
         img.classList.add('user-avatar');
     } else if (user.name) {
-        // Se não tem foto, usa as iniciais do name
         const initials = user.name
             .split(' ')
             .filter(n => n.length > 0)
@@ -85,7 +78,6 @@ function updateUserMenu(user) {
     }
 }
 
-// Dropdown do menu de usuário
 function initializeUserDropdown() {
     const userMenuToggle = document.getElementById('userMenuToggle');
     const userDropdown = document.getElementById('userDropdown');
@@ -97,7 +89,6 @@ function initializeUserDropdown() {
         userDropdown.classList.toggle('show');
     });
 
-    // Fecha ao clicar fora
     document.addEventListener('click', (e) => {
         if (!userMenuToggle.contains(e.target) && !userDropdown.contains(e.target)) {
             userDropdown.classList.remove('show');
@@ -105,7 +96,6 @@ function initializeUserDropdown() {
     });
 }
 
-// Modal de alteração de senha
 function initializeChangePasswordModal() {
     const changePasswordBtn = document.getElementById('changePasswordBtn');
     const changePasswordModal = document.getElementById('changePasswordModal');
@@ -116,14 +106,18 @@ function initializeChangePasswordModal() {
 
     if (!changePasswordBtn || !changePasswordModal) return;
 
-    // Abre o modal
+    // Remove any built-in HTML validation constraints on password inputs
+    const newPwdInput = document.getElementById('newPassword');
+    const confirmPwdInput = document.getElementById('confirmPassword');
+    if (newPwdInput) { newPwdInput.removeAttribute('minlength'); newPwdInput.removeAttribute('pattern'); }
+    if (confirmPwdInput) { confirmPwdInput.removeAttribute('minlength'); confirmPwdInput.removeAttribute('pattern'); }
+
     changePasswordBtn.addEventListener('click', (e) => {
         e.preventDefault();
         changePasswordModal.classList.add('show');
         userDropdown.classList.remove('show');
     });
 
-    // Fecha o modal
     const closeModal = () => {
         changePasswordModal.classList.remove('show');
         changePasswordForm.reset();
@@ -132,14 +126,12 @@ function initializeChangePasswordModal() {
     closePasswordModal.addEventListener('click', closeModal);
     cancelPasswordChange.addEventListener('click', closeModal);
 
-    // Fecha ao clicar no overlay
     changePasswordModal.addEventListener('click', (e) => {
         if (e.target === changePasswordModal) {
             closeModal();
         }
     });
 
-    // Submit do formulário
     changePasswordForm.addEventListener('submit', async (e) => {
         e.preventDefault();
         await handleChangePassword();
@@ -151,14 +143,8 @@ async function handleChangePassword() {
     const newPassword = document.getElementById('newPassword').value;
     const confirmPassword = document.getElementById('confirmPassword').value;
 
-    // Validações
     if (!currentPassword || !newPassword || !confirmPassword) {
         showToast('Erro', 'Todos os campos são obrigatórios', 'error');
-        return;
-    }
-
-    if (newPassword.length < 6) {
-        showToast('Erro', 'A nova senha deve ter pelo menos 6 caracteres', 'error');
         return;
     }
 
@@ -173,7 +159,6 @@ async function handleChangePassword() {
     }
 
     try {
-        // Endpoint: POST /auth/user/password com { currentPassword, newPassword }
         const response = await apiPost('auth/user/password', {
             currentPassword: currentPassword,
             newPassword: newPassword
