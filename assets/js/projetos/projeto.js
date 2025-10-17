@@ -443,6 +443,10 @@ function renderReports(reports) {
     container.innerHTML = reports.map(report => {
         const when = new Date(report.created_at || Date.now()).toLocaleString('pt-BR');
         const teacherName = report.teacher ? report.teacher.name : 'Sistema';
+        const canStudentConclude = isStudent() && String(report.status).toLowerCase() === 'pendente';
+        const statusTag = canStudentConclude
+            ? `<span class="report-tag ${report.status}" style="cursor:pointer" title="Marcar como concluído" onclick="confirmMarkReportCompleted(${report.id})">${String(report.status).toUpperCase()}</span>`
+            : `<span class="report-tag ${report.status}">${String(report.status).toUpperCase()}</span>`;
         return `
         <div class="report-message ${report.status}">
             <div class="report-header">
@@ -463,7 +467,7 @@ function renderReports(reports) {
                 ${report.feedback ? `<div class=\"report-field\"><i class=\"fas fa-comment-dots\"></i><div><span class=\"report-label\">Feedback:</span> ${report.feedback}</div></div>` : ''}
             </div>
             <div class="report-footer">
-                <span class="report-tag ${report.status}">${report.status.toUpperCase()}</span>
+                ${statusTag}
                 <div class="report-actions">
                     <button class="btn btn-warning btn-icon admin-only" title="Editar" onclick="editReport(${report.id})"><i class="fas fa-edit"></i></button>
                 </div>
@@ -473,6 +477,31 @@ function renderReports(reports) {
 
     // Scroll to bottom
     container.scrollTop = container.scrollHeight;
+}
+
+// Aluno: confirmar e marcar relatório como concluído (apenas de pendente -> concluido)
+async function confirmMarkReportCompleted(reportId) {
+    try {
+        if (!isStudent()) return;
+        if (!confirm('Deseja marcar este relatório como concluído?')) return;
+        await markReportAsCompleted(reportId);
+    } catch {}
+}
+
+async function markReportAsCompleted(reportId) {
+    try {
+        const payload = { status: 'concluido' };
+        const resp = await apiPut(`project/${PROJECT_ID}/reports/${reportId}`, JSON.stringify(payload));
+        if (resp && resp.success) {
+            showToast('Relatório marcado como concluído', 'success');
+            await loadProjectData();
+        } else {
+            throw new Error(resp?.message || 'Falha ao atualizar status');
+        }
+    } catch (e) {
+        console.error('Erro ao marcar relatório como concluído', e);
+        showToast('Não foi possível atualizar o status do relatório', 'error');
+    }
 }
 
 // Carregar lista de professores
