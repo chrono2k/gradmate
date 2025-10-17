@@ -119,28 +119,9 @@ Arquivos do Projeto
 3. Configurar `constantes.js` (BASE_URL, `link_api_grad_mate`)
 4. Abrir `http://localhost/gradmate/`
 
-## 9) Convenções de Código
 
-- JS modular por domínio (projetos, curso, etc.)
-- Nomes de funções autoexplicativas; usar `async/await` e tratamento de erros com toasts
-- Helpers centralizados para HTTP e toasts
 
-## 10) Roadmap Sugerido
 
-- Backend: padronizar endpoints (métodos e payloads) — especialmente em relatórios
-- Melhorar build de assets: npm + bundler (Vite/Esbuild)
-- Template engine (Twig) ou framework leve (Slim/Lumen/Laravel)
-- Paginação/Busca server-side para grandes volumes
-- Tests básicos (PHPUnit/JS com Vitest) e CI (GitHub Actions)
-
-## 11) Troubleshooting
-
-- Download sem nome correto: já tratamos múltiplos formatos de `Content-Disposition`; se sua API usar outro header, ajuste `apiDownload()`
-- Lista de arquivos vazia: o front trata 404/erro como “Nenhum arquivo enviado”
-- Token inválido/expirado: o helper apenas propaga erro; tratar redirecionamento para login conforme necessidade
-
----
-Para aprofundar, inclua exemplos de request/response da sua API e atualize os contratos conforme o backend.
 ---
 
 # Manual de Uso (Passo a passo)
@@ -251,21 +232,3 @@ sequenceDiagram
 2) Buscar: use o campo “Buscar cursos...”.
 3) Cadastrar/Editar: “Novo Curso” ou clique em Editar em uma linha.
 4) Ativar/Desativar: use o botão de lixeira (o sistema alterna entre ativo e inativo).
-
-## Dicas rápidas (atalhos mentais)
-
-- Enter no campo de novo relatório envia a mensagem.
-- Use os botões de “Atualizar” nas listas (Cursos, Arquivos) quando necessário.
-- Caso a página aparente travar, verifique se a API está online e se o token não expirou.
-
-## Resolução de Problemas (Usuário)
-
-- Não consigo baixar arquivo: tente novamente; se persistir, verifique a conexão com a API. O sistema já tenta descobrir o nome do arquivo mesmo sem header.
-- Lista “vazia” com erro: a tela já mostra “Nenhum arquivo enviado” quando a API não retorna; se o problema persistir, informe a coordenação/ti.
-- Não vejo alguém na lista de adição: a pessoa já pode estar vinculada ao projeto.
-
-## FAQ
-
-- Posso enviar qualquer tipo de arquivo? Resposta: somente os formatos listados (pdf/doc/x/xls/x/ppt/x/txt/png/jpg/jpeg).
-- Onde vejo o status do projeto? Resposta: no topo da página do projeto, há um seletor de status.
-- Consigo desfazer exclusões? Resposta: não. Use com cuidado (especialmente em arquivos e relatórios).

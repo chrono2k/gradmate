@@ -158,10 +158,21 @@ function formatDate(dateString) {
  */
 function updateStats() {
     document.getElementById('totalProjects').textContent = projetos.length;
-    //TODO mudar a regra para projetos com e sem pendencias
-    document.getElementById('noPendencyProjects').textContent = projetos.filter(c => c.status === 'Pré-projeto').length;
-    document.getElementById('pendencyProjects').textContent = projetos.filter(c => c.status === 'Pré-projeto').length;
-
+    
+    // Projetos sem pendência: aqueles que não têm nenhum report com status "pendente"
+    const noPendency = projetos.filter(projeto => {
+        if (!projeto.reports || projeto.reports.length === 0) return true; // sem reports = sem pendência
+        return !projeto.reports.some(report => report.status?.toLowerCase() === 'pendente');
+    });
+    
+    // Projetos com pendência: aqueles que têm pelo menos um report com status "pendente"
+    const withPendency = projetos.filter(projeto => {
+        if (!projeto.reports || projeto.reports.length === 0) return false;
+        return projeto.reports.some(report => report.status?.toLowerCase() === 'pendente');
+    });
+    
+    document.getElementById('noPendencyProjects').textContent = noPendency.length;
+    document.getElementById('pendencyProjects').textContent = withPendency.length;
 }
 
 /**

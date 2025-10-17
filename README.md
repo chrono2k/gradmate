@@ -41,8 +41,6 @@ Projeto de controle de TCC — interface administrativa para gerenciar projetos,
 	- Exemplo: `<link rel="stylesheet" href="/css/app.css<?php echo ver(); ?>">`
 - Includes centralizados: views passam a incluir `config/config.php` e usar o helper de versão; removida duplicação entre `header.php` e `sidebar.php`.
 - Escape de saída: helper `e()` criado (atalho para `htmlspecialchars`) e aplicado onde há valores dinâmicos exibidos.
-- Dependências: recomenda-se gerenciar via Composer/npm (ainda não migrado; `.gitignore` já cobre `vendor/` e `node_modules/`).
-- Roadmap: avaliar micro-framework (Slim/Lumen) ou template engine (Twig) para melhor separação de responsabilidades.
 
 ## Desenvolvimento e troubleshooting
 

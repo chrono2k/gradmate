@@ -511,6 +511,9 @@ td {
 .course-icon {
     width: 40px;
     height: 40px;
+    min-width: 40px;
+    min-height: 40px;
+    flex-shrink: 0;
     border-radius: 10px;
     background: linear-gradient(135deg, var(--primary), var(--secondary));
     display: flex;
@@ -771,6 +774,18 @@ td {
 
     .observation {
         max-width: 150px;
+    }
+
+    .course-icon {
+        width: 36px;
+        height: 36px;
+        min-width: 36px;
+        min-height: 36px;
+        font-size: 0.8rem;
+    }
+
+    .course-name {
+        font-size: 0.9rem;
     }
 }
 .page-header {
