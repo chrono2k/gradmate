@@ -1083,7 +1083,7 @@ async function generateDefensePDF() {
     // Buscar todas as atas existentes para calcular o próximo número (busca SEMPRE atualizada)
     let ataNumero = '1'; // padrão se não houver atas
     try {
-        const atasResp = await apiGet(`project/${PROJECT_ID}/atas?_=${Date.now()}`); // Cache bust
+    const atasResp = await apiGet(`project/atas?_=${Date.now()}`); // Cache bust (global)
         const atas = atasResp?.items || atasResp?.atas || atasResp?.data?.items || [];
         
         console.log('Total de atas retornadas pelo backend:', atas.length);
@@ -1324,7 +1324,7 @@ async function prefillAtaNumber() {
     if ((input.value || '').trim()) return;
 
     try {
-        const resp = await apiGet(`project/${PROJECT_ID}/atas`);
+    const resp = await apiGet(`project/atas`);
         const atas = (resp && (resp.items || resp.atas || resp.data?.items)) || [];
         
         // Encontrar o MAIOR ID entre TODAS as atas
@@ -1391,7 +1391,7 @@ async function prefillNoticeAtaNumber() {
     if ((input.value || '').trim()) return;
 
     try {
-        const resp = await apiGet(`project/${PROJECT_ID}/atas`);
+    const resp = await apiGet(`project/atas`);
         const atas = (resp && (resp.items || resp.atas || resp.data?.items)) || [];
         
         // Encontrar o MAIOR ID entre TODAS as atas
@@ -1439,7 +1439,7 @@ function generateNoticePDF() {
             // ============ Buscar o maior ID para calcular o número ============
             let ataNumero = '1';
             try {
-                const atasResp = await apiGet(`project/${PROJECT_ID}/atas?_=${Date.now()}`);
+                const atasResp = await apiGet(`project/atas?_=${Date.now()}`);
                 const atas = atasResp?.items || atasResp?.atas || atasResp?.data?.items || [];
                 
                 // Encontrar o MAIOR ID entre TODAS as atas
