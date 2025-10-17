@@ -204,17 +204,14 @@ include("../generics/sidebar.php");
                         </h3>
                     </div>
 
-                    <div style="display: flex; flex-direction: column; gap: 12px;">
+                    <div style="display: flex; flex-direction: column; gap: 12px; align-items: flex-start;">
                         <button id="btnGeneratePDF" class="btn btn-success" onclick="openResultModal()" style="display:none;">
-                            <i class="fas fa-file-pdf"></i>
                             Gerar Ata de Defesa
                         </button>
                         <button id="btnGenerateNotice" class="btn btn-primary" onclick="openNoticeModal()" style="display:none;">
-                            <i class="fas fa-bell"></i>
                             Gerar Aviso para Banca
                         </button>
                         <button id="btnGenerateCertificate" class="btn btn-secondary" onclick="openCertificateModal()">
-                            <i class="fas fa-certificate"></i>
                             Gerar Certificado de Orientação
                         </button>
                     </div>

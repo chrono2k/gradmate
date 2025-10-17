@@ -9,7 +9,7 @@ let selectedStudents = [];
 let selectedGuests = [];
 let editingReportId = null;
 // Seleção de arquivos para exclusão em lote
-let selectedFileIds = new Set();
+        const lineHeight = 7; // Increased line height for better spacing
 let lastProjectFiles = [];
 
 // Inicialização
@@ -1697,6 +1697,53 @@ function loadImageElement(url) {
     });
 }
 
+// Desenha parágrafo com estilos (negrito/parcial) e word-wrap
+function drawStyledParagraph(doc, startX, startY, maxWidth, lineHeight, chunks, baseFont = 'times') {
+    let x = startX;
+    let y = startY;
+    let currentLine = [];
+    let currentWidth = 0;
+
+    // Helper para obter largura de texto com estilo atual
+    const textWidth = (txt, weight) => {
+        try { doc.setFont(baseFont, weight); } catch { doc.setFont('helvetica', weight); }
+        return doc.getTextWidth(txt);
+    };
+
+    const flushLine = () => {
+        let cx = startX;
+        for (const token of currentLine) {
+            try { doc.setFont(baseFont, token.weight); } catch { doc.setFont('helvetica', token.weight); }
+            doc.text(token.text, cx, y);
+            cx += textWidth(token.text + ' ', token.weight);
+        }
+        y += lineHeight;
+        currentLine = [];
+        currentWidth = 0;
+    };
+
+    // Quebra chunks em palavras mantendo estilo
+    const words = [];
+    for (const ch of chunks) {
+        const parts = (ch.text || '').split(/(\s+)/).filter(p => p.length > 0);
+        for (const p of parts) {
+            words.push({ text: p, weight: ch.weight });
+        }
+    }
+
+    words.forEach((w, idx) => {
+        const wWidth = textWidth(w.text, w.weight);
+        if (currentWidth + wWidth > maxWidth && currentLine.length > 0) {
+            flushLine();
+        }
+        currentLine.push(w);
+        currentWidth += wWidth;
+    });
+
+    if (currentLine.length) flushLine();
+    return y; // retorno do y após o parágrafo
+}
+
 async function generateAdvisorCertificates(semesterYear) {
     if (!projectData) {
         showToast('Erro', 'Dados do projeto não carregados', 'error');
@@ -1731,7 +1778,8 @@ async function generateAdvisorCertificates(semesterYear) {
     }
 
     // Recursos visuais
-    const logoPath = '../../assets/img/logo-2024.png';
+    // Usa o logo alternativo solicitado
+    const logoPath = '../../assets/img/logo-2024-2.png';
     const assinaturaPath = '../../assets/img/assinatura.png';
     let logoImg = null;
     let assinaturaImg = null;
@@ -1742,7 +1790,7 @@ async function generateAdvisorCertificates(semesterYear) {
 
     for (const teacher of teachers) {
         const professorNome = teacher?.name || '__________________';
-        const doc = new jsPDF({ unit: 'mm', format: 'a4' });
+    const doc = new jsPDF({ unit: 'mm', format: 'a4', orientation: 'landscape' });
         const pageWidth = doc.internal.pageSize.getWidth();
         const pageHeight = doc.internal.pageSize.getHeight();
         const margin = 20; // ~2cm
@@ -1753,9 +1801,9 @@ async function generateAdvisorCertificates(semesterYear) {
         try { doc.setFont('times', 'normal'); } catch { doc.setFont('helvetica', 'normal'); }
         doc.setLineHeightFactor(1.5);
 
-        // Cabeçalho: logo
+        // Cabeçalho: logo (um pouco menor que antes)
         if (logoImg) {
-            const maxLogoW = Math.min(80, contentWidth); // até 80mm
+            const maxLogoW = Math.min(contentWidth * 0.65, 180); // ~65% da largura útil, com limite
             const aspect = logoImg.naturalWidth / logoImg.naturalHeight;
             const logoW = maxLogoW;
             const logoH = logoW / (aspect || 1);
@@ -1779,25 +1827,34 @@ async function generateAdvisorCertificates(semesterYear) {
         // Espaço antes do título (~1.5cm)
         y += 15;
 
-        // Título
-        doc.setFontSize(22);
+    // Título (um pouco menor, -3 do tamanho atual)
+    doc.setFontSize(37);
         doc.text('C E R T I F I C A D O', pageWidth / 2, y, { align: 'center' });
 
         // Espaço antes do corpo (~1cm)
-        y += 10;
+        y += 12;
 
-        // Corpo do texto (12pt, justificado)
+        // Corpo do texto (maior e com negrito nos nomes/título)
         try { doc.setFont('times', 'normal'); } catch { doc.setFont('helvetica', 'normal'); }
-        doc.setFontSize(12);
-        const corpo = `A Faculdade de Tecnologia de Garça "Deputado Júlio Julinho Marcondes de Moura" certifica, para os fins que se fizerem necessários, que o professor ${professorNome} orientou o Trabalho de Conclusão de Curso "${tituloTrabalho}", durante o ${semesterYear}, elaborado ${peloLabel} ${alunoLabel} ${nomesAlunos}, do curso de ${curso}.`;
-        const linhas = doc.splitTextToSize(corpo, contentWidth);
-        doc.text(linhas, margin, y, { align: 'justify' });
-        // Estimar avanço de y baseado em número de linhas (~6mm por linha com fator 1.5)
-        y += (linhas.length * 6 * 1.2) + 10; // +10mm de espaço antes da assinatura
+        doc.setFontSize(14);
+        const chunks = [
+            { text: 'A Faculdade de Tecnologia de Garça "Deputado Júlio Julinho Marcondes de Moura" certifica, para os fins que se fizerem necessários, que o professor ', weight: 'normal' },
+            { text: professorNome, weight: 'bold' },
+            { text: ' orientou o Trabalho de Conclusão de Curso "', weight: 'normal' },
+            { text: tituloTrabalho, weight: 'bold' },
+            { text: '", durante o ', weight: 'normal' },
+            { text: semesterYear, weight: 'normal' },
+            { text: ', elaborado ', weight: 'normal' },
+            { text: peloLabel + ' ' + alunoLabel + ' ', weight: 'normal' },
+            { text: nomesAlunos, weight: 'bold' },
+            { text: ', do curso de ' + curso + '.', weight: 'normal' }
+        ];
+        y = drawStyledParagraph(doc, margin, y, contentWidth, 8, chunks);
+        y += 8; // espaço antes da assinatura
 
         // Assinatura (imagem)
         if (assinaturaImg) {
-            const maxW = Math.min(70, contentWidth);
+            const maxW = Math.min(35, contentWidth); // metade do tamanho anterior
             const aspect2 = assinaturaImg.naturalWidth / assinaturaImg.naturalHeight;
             const w = maxW;
             const h = w / (aspect2 || 1);
@@ -1808,18 +1865,20 @@ async function generateAdvisorCertificates(semesterYear) {
             y += 14; // espaço reservado
         }
 
-        // Nome de quem assina
+    // Nome de quem assina (negrito)
+        try { doc.setFont('times', 'bold'); } catch { doc.setFont('helvetica', 'bold'); }
+        doc.setFontSize(12);
+        doc.text('Prof.ª Dr.ª Larissa Pavarini da Luz', pageWidth / 2, y, { align: 'center' });
+        y += 7;
+
+        // Cargo/Função (duas linhas, tudo em negrito)
         try { doc.setFont('times', 'bold'); } catch { doc.setFont('helvetica', 'bold'); }
         doc.setFontSize(11);
-        doc.text('Prof.ª Dr.ª Larissa Pavarini da Luz', pageWidth / 2, y, { align: 'center' });
+        const cargoLinha1 = 'Coordenadora do Curso de Tecnologia em';
+        const cargoLinha2 = 'Análise e Desenvolvimento de Sistemas';
+        doc.text(cargoLinha1, pageWidth / 2, y, { align: 'center' });
         y += 6;
-
-        // Cargo/Função (pode quebrar em 2 linhas)
-        try { doc.setFont('times', 'normal'); } catch { doc.setFont('helvetica', 'normal'); }
-        doc.setFontSize(10);
-        const cargo = 'Coordenadora do Curso de Tecnologia em Análise e Desenvolvimento de Sistemas';
-        const cargoLinhas = doc.splitTextToSize(cargo, contentWidth);
-        doc.text(cargoLinhas, pageWidth / 2, y, { align: 'center' });
+        doc.text(cargoLinha2, pageWidth / 2, y, { align: 'center' });
 
         // Exportar: upload ao projeto e download local
         const studentSafe = (studentNames.join('_') || 'Aluno').replace(/[^a-z0-9_]/gi, '_').slice(0, 60);
