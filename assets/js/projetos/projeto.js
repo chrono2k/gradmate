@@ -1780,34 +1780,8 @@ function disableTeacherActions() {
         courseSelect.style.pointerEvents = 'none';
         courseSelect.style.opacity = '0.7';
     }
-
-    // Professores não podem adicionar/remover professores e alunos
-    const addBtns = [
-        'button[onclick="openAddTeacherModal()"]',
-        'button[onclick="openAddStudentModal()"]'
-    ];
-    addBtns.forEach(selector => {
-        document.querySelectorAll(selector).forEach(btn => {
-            btn.disabled = true;
-            btn.style.display = 'none';
-        });
-    });
-
-    // Desabilitar botões de remover professor/aluno
-    document.addEventListener('click', (e) => {
-        const btn = e.target.closest('button[onclick^="removeTeacher"], button[onclick^="removeStudent"];');
-        if (btn) {
-            e.stopPropagation();
-            e.preventDefault();
-            showToast('Ação não permitida', 'Professores não podem gerenciar membros do projeto', 'warning');
-        }
-    }, true);
-
-    // Ocultar as abas/cartões de Professores e Alunos
-    const teachersCard = document.querySelector('.card .card-title i.fas.fa-chalkboard-teacher')?.closest('.card');
-    if (teachersCard) teachersCard.style.display = 'none';
-    const studentsCard = document.querySelector('.card .card-title i.fas.fa-user-graduate')?.closest('.card');
-    if (studentsCard) studentsCard.style.display = 'none';
+    // Professores PODEM gerenciar professores e alunos (adicionar/remover)
+    // Nada a fazer aqui — apenas garantimos que esses botões não sejam escondidos ou interceptados.
 }
 
 function disableRemoveButtons() {
