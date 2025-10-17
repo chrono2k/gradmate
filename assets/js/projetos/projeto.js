@@ -127,7 +127,7 @@ async function loadProjectFiles() {
                     <button class="btn btn-secondary btn-icon" title="Download" onclick="downloadProjectFile(${f.id})">
                         <i class="fas fa-download"></i>
                     </button>
-                    <button class="btn btn-danger btn-icon" title="Excluir" onclick="deleteProjectFile(${f.id})">
+                    <button class="btn btn-danger btn-icon admin-only" title="Excluir" onclick="deleteProjectFile(${f.id})">
                         <i class="fas fa-trash"></i>
                     </button>
                 </div>
@@ -249,7 +249,7 @@ function renderTeachersList(teachers) {
                         <div class="member-name">${teacher.name}</div>
                         ${teacher.observation ? `<div class="member-detail">${teacher.observation}</div>` : ''}
                     </div>
-                    <button class="btn btn-danger btn-icon" onclick="removeTeacher(${teacher.id})" title="Remover">
+                    <button class="btn btn-danger btn-icon admin-only" onclick="removeTeacher(${teacher.id})" title="Remover">
                         <i class="fas fa-trash"></i>
                     </button>
                 </div>
@@ -275,7 +275,7 @@ function renderStudentsList(students) {
                         <div class="member-name">${student.name}</div>
                         <div class="member-detail">Matrícula: ${student.registration || 'N/A'}</div>
                     </div>
-                    <button class="btn btn-danger btn-icon" onclick="removeStudent(${student.id})" title="Remover">
+                    <button class="btn btn-danger btn-icon admin-only" onclick="removeStudent(${student.id})" title="Remover">
                         <i class="fas fa-trash"></i>
                     </button>
                 </div>
@@ -300,7 +300,7 @@ function renderGuestsList(guests) {
                         <div class="member-name">${guest.name}</div>
                         ${guest.observation ? `<div class="member-detail">${guest.observation}</div>` : '<div class="member-detail">Membro da banca</div>'}
                     </div>
-                    <button class="btn btn-danger btn-icon" onclick="removeGuest(${guest.id})" title="Remover">
+                    <button class="btn btn-danger btn-icon admin-only" onclick="removeGuest(${guest.id})" title="Remover">
                         <i class="fas fa-trash"></i>
                     </button>
                 </div>
@@ -341,7 +341,7 @@ function renderReports(reports) {
             <div class="report-footer">
                 <span class="report-tag ${report.status}">${report.status.toUpperCase()}</span>
                 <div class="report-actions">
-                    <button class="btn btn-warning btn-icon" title="Editar" onclick="editReport(${report.id})"><i class="fas fa-edit"></i></button>
+                    <button class="btn btn-warning btn-icon admin-only" title="Editar" onclick="editReport(${report.id})"><i class="fas fa-edit"></i></button>
                 </div>
             </div>
         </div>`;
@@ -937,7 +937,7 @@ function generateDefensePDF() {
 
         // ============ CONSTANTES DO MODELO ============
         const instituicao = 'FACULDADE DE TECNOLOGIA DE GARÇA “DEPUTADO JULIO JULINHO MARCONDES DE MOURA”';
-        const curso = 'CURSO DE TECNOLOGIA EM ANÁLISE E DESENVOLVIMENTO DE SISTEMAS';
+        const curso = 'CURSO SUPERIOR DE TECNOLOGIA';
         const cidadeUf = 'Garça/SP';
 
         const alunoNome = (projectData.students && projectData.students[0]?.name) ? projectData.students[0].name : '__________________';
@@ -1466,4 +1466,135 @@ function generateNoticePDF() {
         console.error('Erro ao gerar PDF de aviso:', error);
         showToast('Erro ao gerar PDF: ' + error.message, 'error');
     }
+}
+
+// ========================= Permissões de Usuário =========================
+// Escuta o evento de usuário carregado para aplicar permissões
+document.addEventListener('userLoaded', (event) => {
+    const user = event.detail;
+    applyProjectPermissions(user);
+});
+
+function applyProjectPermissions(user) {
+    if (!user || !user.authority) {
+        return;
+    }
+
+    const authority = String(user.authority).toLowerCase();
+
+    // Se for student/aluno, desabilita ações de edição
+    if (authority === 'student' || authority === 'aluno') {
+        disableStudentActions();
+    }
+}
+
+function disableStudentActions() {
+    // Adiciona classe ao body para controlar via CSS
+    document.body.classList.add('student-view');
+
+    // Desabilita select de status do projeto
+    const projectStatus = document.getElementById('projectStatus');
+    if (projectStatus) {
+        projectStatus.disabled = true;
+        projectStatus.style.pointerEvents = 'none';
+        projectStatus.style.opacity = '0.6';
+    }
+
+    // Desabilita botão de salvar informações do projeto
+    const saveBtns = document.querySelectorAll('button[onclick="saveProjectInfo()"]');
+    saveBtns.forEach(btn => {
+        btn.disabled = true;
+        btn.style.display = 'none';
+    });
+
+    // Desabilita campos de edição do projeto
+    const editFields = [
+        'editProjectName',
+        'editProjectDescription',
+        'editProjectObservation',
+        'editProjectCourse'
+    ];
+    editFields.forEach(fieldId => {
+        const field = document.getElementById(fieldId);
+        if (field) {
+            field.disabled = true;
+            field.style.backgroundColor = 'rgba(255, 255, 255, 0.05)';
+            field.style.cursor = 'not-allowed';
+        }
+    });
+
+    // Desabilita botão de gerar relatório
+    const reportBtns = document.querySelectorAll('button[onclick="openNewReportModal()"]');
+    reportBtns.forEach(btn => {
+        btn.disabled = true;
+        btn.style.display = 'none';
+    });
+
+    // Desabilita botões de adicionar orientadores, alunos e convidados
+    const addBtns = [
+        'button[onclick="openAddTeacherModal()"]',
+        'button[onclick="openAddStudentModal()"]',
+        'button[onclick="openAddGuestModal()"]'
+    ];
+    addBtns.forEach(selector => {
+        const btns = document.querySelectorAll(selector);
+        btns.forEach(btn => {
+            btn.disabled = true;
+            btn.style.display = 'none';
+        });
+    });
+
+    // Desabilita botões de remover (orientadores, alunos, convidados)
+    // Estes são criados dinamicamente, então interceptamos os clicks
+    disableRemoveButtons();
+
+    // Desabilita botão de editar relatório
+    disableEditReportButtons();
+
+    // Desabilita botão de excluir arquivos (mas mantém download e upload)
+    disableDeleteFileButtons();
+}
+
+function disableRemoveButtons() {
+    // Intercepta clicks em botões de remover
+    document.addEventListener('click', (e) => {
+        const btn = e.target.closest('button[onclick^="removeTeacher"], button[onclick^="removeStudent"], button[onclick^="removeGuest"]');
+        if (btn && isStudent()) {
+            e.stopPropagation();
+            e.preventDefault();
+            showToast('Ação não permitida', 'Alunos não podem remover membros do projeto', 'warning');
+        }
+    }, true);
+}
+
+function disableEditReportButtons() {
+    // Intercepta clicks em botões de editar relatório
+    document.addEventListener('click', (e) => {
+        const btn = e.target.closest('button[onclick^="editReport"]');
+        if (btn && isStudent()) {
+            e.stopPropagation();
+            e.preventDefault();
+            showToast('Ação não permitida', 'Alunos não podem editar relatórios', 'warning');
+        }
+    }, true);
+}
+
+function disableDeleteFileButtons() {
+    // Intercepta clicks em botões de excluir arquivo
+    document.addEventListener('click', (e) => {
+        const btn = e.target.closest('button[onclick^="deleteProjectFile"]');
+        if (btn && isStudent()) {
+            e.stopPropagation();
+            e.preventDefault();
+            showToast('Ação não permitida', 'Alunos não podem excluir arquivos', 'warning');
+        }
+    }, true);
+}
+
+function isStudent() {
+    if (typeof currentUser !== 'undefined' && currentUser && currentUser.authority) {
+        const authority = String(currentUser.authority).toLowerCase();
+        return authority === 'student' || authority === 'aluno';
+    }
+    return false;
 }

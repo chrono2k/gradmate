@@ -579,6 +579,18 @@
     }
 }
 
+/* Permissões para estudantes */
+body.student-view .admin-only {
+    display: none !important;
+}
+
+body.student-view button[onclick*="openAddTeacherModal"],
+body.student-view button[onclick*="openAddStudentModal"],
+body.student-view button[onclick*="openAddGuestModal"],
+body.student-view button[onclick*="saveProjectInfo"] {
+    display: none !important;
+}
+
 @media (max-width: 768px) {
     .page-header {
         padding: 20px;

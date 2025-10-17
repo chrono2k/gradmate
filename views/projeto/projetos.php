@@ -122,7 +122,7 @@ include("../generics/sidebar.php");
                         <input
                                 type="text"
                                 id="projectName"
-                                placeholder="Ex: Análise e Desenvolvimento de Sistemas"
+                                placeholder="Ex: Sistema de Gestão Acadêmica Integrado"
                                 required
                         >
                     </div>
@@ -134,7 +134,7 @@ include("../generics/sidebar.php");
                         </label>
                         <textarea
                                 id="courseObservation"
-                                placeholder="Adicione detalhes, informações importantes ou observações sobre o curso..."
+                                placeholder="Adicione detalhes, informações importantes ou observações sobre o projeto..."
                         ></textarea>
                     </div>
                 </form>
@@ -146,7 +146,7 @@ include("../generics/sidebar.php");
                 </button>
                 <button class="btn btn-success" onclick="saveCourse()">
                     <i class="fas fa-save"></i>
-                    Salvar Curso
+                    Salvar Projeto
                 </button>
             </div>
         </div>

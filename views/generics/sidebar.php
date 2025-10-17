@@ -83,3 +83,5 @@
 
     </nav>
 </aside>
+
+<script src="../../assets/js/generics/sidebar.js<?php echo ver(); ?>"></script>
