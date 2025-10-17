@@ -8,6 +8,9 @@ let selectedTeachers = [];
 let selectedStudents = [];
 let selectedGuests = [];
 let editingReportId = null;
+// Seleção de arquivos para exclusão em lote
+let selectedFileIds = new Set();
+let lastProjectFiles = [];
 
 // Inicialização
 document.addEventListener('DOMContentLoaded', () => {
@@ -105,17 +108,38 @@ async function loadProjectFiles() {
     try {
         const resp = await apiGet(`project/${PROJECT_ID}/files`);
         const files = resp.files || resp || [];
+        lastProjectFiles = Array.isArray(files) ? files : [];
         if (!files.length) {
+            // Reset seleção quando não houver arquivos
+            selectedFileIds = new Set();
             list.innerHTML = '<div class="empty-state"><i class="fas fa-folder-open"></i><p>Nenhum arquivo enviado</p></div>';
             return;
         }
 
-        list.innerHTML = files.map(f => {
+        // Toolbar de ações em lote
+        const toolbarHtml = `
+            <div id=\"filesBulkToolbar\" class=\"files-toolbar\">
+                <label class=\"files-toolbar-selectall\">
+                    <input type=\"checkbox\" id=\"selectAllFiles\" onchange=\"toggleSelectAllFiles(this.checked)\" />
+                    Selecionar todos
+                </label>
+                <button id=\"btnBulkDeleteFiles\" class=\"btn btn-danger admin-only btn-bulk\" title=\"Excluir selecionados\" onclick=\"bulkDeleteSelectedFiles()\" disabled>
+                    <i class=\"fas fa-trash\"></i>
+                    <span>Excluir selecionados</span>
+                </button>
+                <span id=\"selectedCountBadge\" class=\"files-toolbar-count\"></span>
+            </div>`;
+
+        const itemsHtml = files.map(f => {
             const fname = f.original_name || f.filename || f.name || f.file_name || 'Arquivo';
             const fsize = Number(f.size || f.file_size || 0);
             const fdate = f.created_at || f.uploaded_at || f.createdAt || f.updated_at || null;
+            const checked = selectedFileIds.has(f.id) ? 'checked' : '';
             return `
             <div class="member-item" style="align-items:center;">
+                <div style="margin-right:8px;">
+                    <input type="checkbox" class="file-select admin-only" data-file-id="${f.id}" onchange="toggleSelectFile(${f.id}, this.checked)" ${checked} />
+                </div>
                 <div class="member-avatar" style="width:40px; height:40px;">
                     <i class="fas fa-file" style="font-size:16px;"></i>
                 </div>
@@ -133,10 +157,107 @@ async function loadProjectFiles() {
                 </div>
             </div>`;
         }).join('');
+
+        list.innerHTML = toolbarHtml + itemsHtml;
+        // Atualiza estados da UI
+        updateBulkActionsUI();
+        updateSelectAllCheckboxState();
     } catch (e) {
         // Tratar como vazio quando API ainda não tem endpoint/retorna 404
         console.warn('Arquivos do projeto não disponíveis ou ainda não enviados. Exibindo estado vazio.', e?.message || e);
         list.innerHTML = '<div class="empty-state"><i class="fas fa-folder-open"></i><p>Nenhum arquivo enviado</p></div>';
+    }
+}
+
+// Atualiza botão de exclusão em lote e contador
+function updateBulkActionsUI() {
+    try {
+        const btn = document.getElementById('btnBulkDeleteFiles');
+        const badge = document.getElementById('selectedCountBadge');
+        const count = selectedFileIds.size;
+        if (btn) btn.disabled = count === 0;
+        if (badge) badge.textContent = count > 0 ? `${count} selecionado(s)` : '';
+    } catch {}
+}
+
+// Atualiza estado do checkbox "Selecionar todos"
+function updateSelectAllCheckboxState() {
+    const selectAll = document.getElementById('selectAllFiles');
+    if (!selectAll) return;
+    const total = (lastProjectFiles || []).length;
+    const selected = selectedFileIds.size;
+    if (total === 0) {
+        selectAll.checked = false;
+        selectAll.indeterminate = false;
+        return;
+    }
+    if (selected === 0) {
+        selectAll.checked = false;
+        selectAll.indeterminate = false;
+    } else if (selected === total) {
+        selectAll.checked = true;
+        selectAll.indeterminate = false;
+    } else {
+        selectAll.checked = false;
+        selectAll.indeterminate = true;
+    }
+}
+
+// Alterna seleção de um arquivo
+function toggleSelectFile(fileId, checked) {
+    if (checked) selectedFileIds.add(fileId); else selectedFileIds.delete(fileId);
+    updateBulkActionsUI();
+    updateSelectAllCheckboxState();
+}
+
+// Selecionar/Desselecionar todos
+function toggleSelectAllFiles(checked) {
+    if (!Array.isArray(lastProjectFiles)) return;
+    if (checked) {
+        selectedFileIds = new Set(lastProjectFiles.map(f => f.id));
+        // Marcar todos os checkboxes
+        document.querySelectorAll('#projectFilesList input.file-select').forEach(cb => { cb.checked = true; });
+    } else {
+        selectedFileIds.clear();
+        document.querySelectorAll('#projectFilesList input.file-select').forEach(cb => { cb.checked = false; });
+    }
+    updateBulkActionsUI();
+    updateSelectAllCheckboxState();
+}
+
+// Exclusão em lote
+async function bulkDeleteSelectedFiles() {
+    const ids = Array.from(selectedFileIds);
+    if (!ids.length) {
+        return showToast('Atenção', 'Selecione ao menos um arquivo', 'error');
+    }
+    if (!confirm(`Excluir ${ids.length} arquivo(s)? Esta ação não pode ser desfeita.`)) return;
+
+    // Primeiro tenta um endpoint único com DELETE e corpo JSON
+    try {
+        const resp = await apiDelete(`project/${PROJECT_ID}/files`, JSON.stringify({ file_ids: ids }));
+        if (resp?.success) {
+            showToast('Sucesso', 'Arquivos excluídos', 'success');
+            selectedFileIds.clear();
+            await loadProjectFiles();
+            return;
+        }
+        throw new Error(resp?.message || 'Falha ao excluir em lote (DELETE /files)');
+    } catch (err) {
+        console.warn('Bulk delete via DELETE falhou, tentando fallback POST /files/bulk-delete', err?.message || err);
+        try {
+            const resp2 = await apiPost(`project/${PROJECT_ID}/files/bulk-delete`, JSON.stringify({ file_ids: ids }));
+            if (resp2?.success) {
+                showToast('Sucesso', 'Arquivos excluídos', 'success');
+                selectedFileIds.clear();
+                await loadProjectFiles();
+                return;
+            }
+            throw new Error(resp2?.message || 'Falha no fallback');
+        } catch (err2) {
+            console.error('Exclusão em lote falhou', err2?.message || err2);
+            showToast('Erro', 'Não foi possível excluir os arquivos selecionados', 'error');
+        }
     }
 }
 
@@ -919,7 +1040,7 @@ function openNewReportModal() {
 }
 
 // ========================= Geração de PDF - Ata de Defesa =========================
-function generateDefensePDF() {
+async function generateDefensePDF() {
     if (!projectData) {
         showToast('Erro ao gerar PDF: dados do projeto não carregados', 'error');
         return;
@@ -953,17 +1074,43 @@ function generateDefensePDF() {
         const min = String(now.getMinutes()).padStart(2, '0');
         const dataHoraExtenso = `Aos ${dd} dias do mês de ${mmNome} de ${yyyy}, às ${hh}:${min}h`;
 
+        // Local da defesa
+        const localCompleto = (window.__defenseLocation && window.__defenseLocation.trim())
+            ? window.__defenseLocation.trim()
+            : 'Sala Maker da Faculdade de Tecnologia de Garça "Deputado Júlio Julinho Marcondes de Moura"';
+
     // ============ CABEÇALHO/TÍTULO ============
-    // "ATA Nº" na primeira linha (canto esquerdo), e depois duas quebras de linha
-    const ataNumero = (window.__defenseAtaNumber || '').trim();
-    if (ataNumero) {
-        doc.setFontSize(10);
-        doc.setFont(undefined, 'bold');
-        doc.text(`ATA Nº ${ataNumero}`, margin, margin);
-        yPos = margin + (lineHeight * 2); // duas quebras de linha
-    } else {
-        yPos = margin; // começa o título principal no topo, se não tiver número
+    // Buscar todas as atas existentes para calcular o próximo número (busca SEMPRE atualizada)
+    let ataNumero = '1'; // padrão se não houver atas
+    try {
+        const atasResp = await apiGet(`project/${PROJECT_ID}/atas?_=${Date.now()}`); // Cache bust
+        const atas = atasResp?.items || atasResp?.atas || atasResp?.data?.items || [];
+        
+        console.log('Total de atas retornadas pelo backend:', atas.length);
+        console.log('Atas encontradas:', atas);
+        
+        // Encontrar o MAIOR ID entre TODAS as atas (defesa + aviso)
+        let maxId = 0;
+        for (const ata of atas) {
+            if (ata.id > maxId) {
+                maxId = ata.id;
+                console.log('Maior ID encontrado:', maxId, '- Tipo:', ata.result);
+            }
+        }
+        
+        // Próximo número = maior ID + 1 (numeração global única)
+        ataNumero = String(maxId + 1);
+        console.log('✅ Número da nova ATA:', ataNumero, '(maior ID global:', maxId, ')');
+    } catch (e) {
+        console.warn('Não foi possível buscar atas existentes, usando número padrão 1', e?.message || e);
+        ataNumero = '1';
     }
+    
+    // Exibir "ATA Nº" no PDF
+    doc.setFontSize(10);
+    doc.setFont(undefined, 'bold');
+    doc.text(`ATA Nº ${ataNumero}`, margin, margin);
+    yPos = margin + (lineHeight * 2); // duas quebras de linha
 
     // Título principal centralizado
     doc.setFontSize(12);
@@ -977,9 +1124,6 @@ function generateDefensePDF() {
         doc.setFontSize(11);
 
         // ============ CORPO FIXO (conforme padrão) ============
-        const localCompleto = (window.__defenseLocation && window.__defenseLocation.trim())
-            ? window.__defenseLocation.trim()
-            : 'Sala Maker da Faculdade de Tecnologia de Garça “Deputado Júlio Julinho Marcondes de Moura”';
     const resultadoEscolhido = window.__defenseResult === 'reprovado' ? 'REPROVADO' : (window.__defenseResult === 'aprovado' ? 'APROVADO' : '__________________');
     const paragrafo1 = `${dataHoraExtenso}, em sessão pública, realizou-se na ${localCompleto}, a defesa do Projeto de Graduação “${tituloTrabalho.toUpperCase()}”, de autoria do aluno ${alunoNome}. A Banca Examinadora iniciou suas atividades submetendo o aluno à forma regimental de defesa do Projeto de Graduação. Terminado o exame, a Banca procedeu ao julgamento e declarou o aluno ${resultadoEscolhido === '__________________' ? '__________________' : resultadoEscolhido}.`;
         const linhas1 = doc.splitTextToSize(paragrafo1, maxWidth);
@@ -1101,14 +1245,19 @@ function generateDefensePDF() {
                         try {
                             const payloadAta = {
                                 file_id: fileId,
+                                ata_number: ataNumero, // Número da ata exibido no PDF
                                 student_name: alunoNome,
                                 title: tituloTrabalho,
                                 result: (window.__defenseResult === 'reprovado' ? 'reprovado' : 'aprovado'),
                                 location: localCompleto,
                                 started_at: `${yyyy}-${String(now.getMonth()+1).padStart(2,'0')}-${dd}T${hh}:${min}:00-03:00`
                             };
-                            await apiPost(`project/${PROJECT_ID}/atas`, payloadAta);
+                            const ataResp = await apiPost(`project/${PROJECT_ID}/atas`, payloadAta);
+                            console.log('✅ Ata criada no backend:', ataResp);
+                            console.log('   - ID retornado:', ataResp?.ata?.id || ataResp?.id);
+                            console.log('   - Número usado:', ataNumero);
                         } catch (e) {
+                            console.error('❌ Erro ao criar registro de ata:', e?.message || e);
                             console.warn('Registro de ata não criado (endpoint indisponível?)', e?.message || e);
                         }
                     } else {
@@ -1176,16 +1325,24 @@ async function prefillAtaNumber() {
 
     try {
         const resp = await apiGet(`project/${PROJECT_ID}/atas`);
-        const items = (resp && (resp.items || resp.atas || resp.data?.items)) || [];
+        const atas = (resp && (resp.items || resp.atas || resp.data?.items)) || [];
+        
+        // Encontrar o MAIOR ID entre TODAS as atas
         let maxId = 0;
-        for (const it of items) {
-            if (it && typeof it.id === 'number' && it.id > maxId) maxId = it.id;
+        for (const ata of atas) {
+            if (ata.id > maxId) {
+                maxId = ata.id;
+            }
         }
-        const next = maxId + 1 || 1;
+        
+        // Próximo número = maior ID + 1
+        const next = maxId + 1;
         input.value = String(next);
+        console.log('Número sugerido para nova ATA:', next, '(maior ID:', maxId, ')');
     } catch (e) {
-        // Se não houver endpoint ainda, deixa em branco
+        // Se não houver endpoint ainda, começa do 1
         console.warn('Não foi possível obter próximo número de ATA', e?.message || e);
+        input.value = '1';
     }
 }
 
@@ -1235,15 +1392,23 @@ async function prefillNoticeAtaNumber() {
 
     try {
         const resp = await apiGet(`project/${PROJECT_ID}/atas`);
-        const items = (resp && (resp.items || resp.atas || resp.data?.items)) || [];
+        const atas = (resp && (resp.items || resp.atas || resp.data?.items)) || [];
+        
+        // Encontrar o MAIOR ID entre TODAS as atas
         let maxId = 0;
-        for (const it of items) {
-            if (it && typeof it.id === 'number' && it.id > maxId) maxId = it.id;
+        for (const ata of atas) {
+            if (ata.id > maxId) {
+                maxId = ata.id;
+            }
         }
-        const next = maxId + 1 || 1;
+        
+        // Próximo número = maior ID + 1
+        const next = maxId + 1;
         input.value = String(next);
+        console.log('Número sugerido para novo Aviso:', next, '(maior ID:', maxId, ')');
     } catch (e) {
         console.warn('Não foi possível obter próximo número de ATA', e?.message || e);
+        input.value = '1';
     }
 }
 
@@ -1268,20 +1433,42 @@ function generateNoticePDF() {
         return;
     }
 
-    try {
-        const { jsPDF } = window.jspdf;
-        const doc = new jsPDF();
+    // Executar de forma async
+    (async () => {
+        try {
+            // ============ Buscar o maior ID para calcular o número ============
+            let ataNumero = '1';
+            try {
+                const atasResp = await apiGet(`project/${PROJECT_ID}/atas?_=${Date.now()}`);
+                const atas = atasResp?.items || atasResp?.atas || atasResp?.data?.items || [];
+                
+                // Encontrar o MAIOR ID entre TODAS as atas
+                let maxId = 0;
+                for (const ata of atas) {
+                    if (ata.id > maxId) {
+                        maxId = ata.id;
+                    }
+                }
+                
+                ataNumero = String(maxId + 1);
+                console.log('✅ Número do novo Aviso:', ataNumero, '(maior ID global:', maxId, ')');
+            } catch (e) {
+                console.warn('Não foi possível buscar atas, usando número padrão 1', e?.message || e);
+                ataNumero = '1';
+            }
 
-        const pageWidth = doc.internal.pageSize.width;
-        const pageHeight = doc.internal.pageSize.height;
-        const margin = 20;
-        const lineHeight = 6;
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
 
-        // Dados
-        const ataNumero = window.__noticeAtaNumber || '';
-        const dataStr = window.__noticeDate || '';
-        const horario = window.__noticeTime || '';
-        const sala = window.__noticeRoom || '';
+            const pageWidth = doc.internal.pageSize.width;
+            const pageHeight = doc.internal.pageSize.height;
+            const margin = 20;
+            const lineHeight = 6;
+
+            // Dados
+            const dataStr = window.__noticeDate || '';
+            const horario = window.__noticeTime || '';
+            const sala = window.__noticeRoom || '';
         
         // Formatação da data (de YYYY-MM-DD para DD/MM/YYYY)
         let dataFormatada = dataStr;
@@ -1432,13 +1619,15 @@ function generateNoticePDF() {
                         try {
                             const payloadAta = {
                                 file_id: fileId,
+                                ata_number: ataNumero, // Número do aviso exibido no PDF
                                 student_name: alunosNomes,
                                 title: `Aviso de Banca - ${dataFormatada}`,
                                 result: 'pendente',
                                 location: sala,
                                 started_at: `${dataStr}T${horario}:00-03:00`
                             };
-                            await apiPost(`project/${PROJECT_ID}/atas`, payloadAta);
+                            const ataResp = await apiPost(`project/${PROJECT_ID}/atas`, payloadAta);
+                            console.log('Aviso criado:', ataResp);
                         } catch (e) {
                             console.warn('Registro de aviso não criado (endpoint indisponível?)', e?.message || e);
                         }
@@ -1462,10 +1651,11 @@ function generateNoticePDF() {
                 doc.save(fileName);
             });
 
-    } catch (error) {
-        console.error('Erro ao gerar PDF de aviso:', error);
-        showToast('Erro ao gerar PDF: ' + error.message, 'error');
-    }
+        } catch (error) {
+            console.error('Erro ao gerar PDF de aviso:', error);
+            showToast('Erro ao gerar PDF: ' + error.message, 'error');
+        }
+    })(); // Executa a função async imediatamente
 }
 
 // ========================= Permissões de Usuário =========================
@@ -1553,6 +1743,16 @@ function disableStudentActions() {
 
     // Desabilita botão de excluir arquivos (mas mantém download e upload)
     disableDeleteFileButtons();
+
+    // Oculta seleção e toolbar de exclusão em lote
+    const toolbar = document.getElementById('filesBulkToolbar');
+    if (toolbar) toolbar.style.display = 'none';
+    document.querySelectorAll('#projectFilesList input.file-select, #selectAllFiles, #btnBulkDeleteFiles').forEach(el => {
+        if (el) {
+            el.disabled = true;
+            el.style.display = 'none';
+        }
+    });
 }
 
 function disableRemoveButtons() {

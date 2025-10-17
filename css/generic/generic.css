@@ -37,8 +37,6 @@ body::before {
     --white: #ECF0F3;
     --gray: #93a5be;
     --gray-dark: #525480;
-    --primary: rgb(157, 11, 11);
-    --secondary: #ff0000;
     --success: rgba(24, 99, 75, 0.28);
     --info: #0056B3;
     --warning: rgba(240, 180, 0, 0.28);
