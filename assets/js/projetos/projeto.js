@@ -1737,13 +1737,45 @@ function drawStyledParagraph(doc, startX, startY, maxWidth, lineHeight, chunks, 
         }
     }
 
-    words.forEach((w, idx) => {
-        const wWidth = textWidth(w.text, w.weight);
-        // Se a palavra não cabe na largura restante, quebra a linha (mantém palavra intacta)
+    words.forEach((w) => {
+        const token = { text: w.text, weight: w.weight };
+        const isWhitespace = /^\s+$/.test(token.text);
+        let wWidth = textWidth(token.text, token.weight);
+
+        // Fallback: se o token (sem espaços) é maior que a largura máxima, quebra em pedaços
+        if (!isWhitespace && wWidth > wrapWidth) {
+            let buffer = '';
+            for (let i = 0; i < token.text.length; i++) {
+                const ch = token.text[i];
+                const nextBuf = buffer + ch;
+                const nextWidth = textWidth(nextBuf, token.weight);
+                if (nextWidth > wrapWidth) {
+                    // descarrega buffer como um token na linha atual ou próxima
+                    if (currentWidth > 0 && currentWidth + textWidth(buffer, token.weight) > wrapWidth) {
+                        flushLine();
+                    }
+                    currentLine.push({ text: buffer, weight: token.weight });
+                    currentWidth += textWidth(buffer, token.weight);
+                    buffer = ch; // inicia novo buffer com o char atual
+                } else {
+                    buffer = nextBuf;
+                }
+            }
+            if (buffer) {
+                if (currentWidth > 0 && currentWidth + textWidth(buffer, token.weight) > wrapWidth) {
+                    flushLine();
+                }
+                currentLine.push({ text: buffer, weight: token.weight });
+                currentWidth += textWidth(buffer, token.weight);
+            }
+            return; // já tratou esse token
+        }
+
+        // Token normal (inclui espaços)
         if (currentWidth + wWidth > wrapWidth && currentLine.length > 0) {
             flushLine();
         }
-        currentLine.push(w);
+        currentLine.push(token);
         currentWidth += wWidth;
     });
 
