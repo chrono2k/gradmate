@@ -51,17 +51,6 @@
             </ul>
         </div>
 
-        <div class="nav-section">
-            <div class="nav-section-title">Relatórios</div>
-            <ul class="nav-list">
-                <li class="nav-item">
-                    <a href="#" class="nav-link">
-                        <i class="fa-solid fa-file"></i>
-                        <span>Arquivos</span>
-                    </a>
-                </li>
-            </ul>
-        </div>
         
 
         <div class="nav-section">
