@@ -204,14 +204,14 @@ include("../generics/sidebar.php");
                         </h3>
                     </div>
 
-                    <div style="display: flex; flex-direction: column; gap: 12px; align-items: flex-start;">
+                    <div style="display: flex; flex-direction: column; gap: 12px;">
                         <button id="btnGeneratePDF" class="btn btn-success" onclick="openResultModal()" style="display:none;">
                             Gerar Ata de Defesa
                         </button>
                         <button id="btnGenerateNotice" class="btn btn-primary" onclick="openNoticeModal()" style="display:none;">
                             Gerar Aviso para Banca
                         </button>
-                        <button id="btnGenerateCertificate" class="btn btn-secondary" onclick="openCertificateModal()">
+                        <button id="btnGenerateCertificate" class="btn btn-secondary" onclick="openCertificateModal()" style="display:none">
                             Gerar Certificado de Orientação
                         </button>
                     </div>

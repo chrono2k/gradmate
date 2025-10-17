@@ -9,7 +9,9 @@ let selectedStudents = [];
 let selectedGuests = [];
 let editingReportId = null;
 // Seleção de arquivos para exclusão em lote
-        const lineHeight = 7; // Increased line height for better spacing
+    const lineHeight = 7; // Increased line height for better spacing
+// Conjunto global para controle de seleção de arquivos na UI (evita ReferenceError)
+let selectedFileIds = new Set();
 let lastProjectFiles = [];
 
 // Inicialização
@@ -58,10 +60,11 @@ function renderProjectData() {
     // Mostrar botões de atas conforme status
     const btnPDF = document.getElementById('btnGeneratePDF');
     const btnNotice = document.getElementById('btnGenerateNotice');
-    
+    const btnGenerateCertificate = document.getElementById('btnGenerateCertificate');
     // Ata de Defesa: apenas em Defesa ou Concluído
     if (btnPDF && (projectData.status === 'Defesa' || projectData.status === 'Concluído')) {
         btnPDF.style.display = 'inline-flex';
+        btnGenerateCertificate.style.display = 'inline-flex';
     } else if (btnPDF) {
         btnPDF.style.display = 'none';
     }
@@ -1703,6 +1706,8 @@ function drawStyledParagraph(doc, startX, startY, maxWidth, lineHeight, chunks, 
     let y = startY;
     let currentLine = [];
     let currentWidth = 0;
+    // Pequena margem de segurança para evitar estouro visual no lado direito
+    const wrapWidth = Math.max(0, (maxWidth || 0) - 1);
 
     // Helper para obter largura de texto com estilo atual
     const textWidth = (txt, weight) => {
@@ -1715,7 +1720,8 @@ function drawStyledParagraph(doc, startX, startY, maxWidth, lineHeight, chunks, 
         for (const token of currentLine) {
             try { doc.setFont(baseFont, token.weight); } catch { doc.setFont('helvetica', token.weight); }
             doc.text(token.text, cx, y);
-            cx += textWidth(token.text + ' ', token.weight);
+            // Avança exatamente a largura do token (incluindo espaços se o token for espaço)
+            cx += textWidth(token.text, token.weight);
         }
         y += lineHeight;
         currentLine = [];
@@ -1733,7 +1739,8 @@ function drawStyledParagraph(doc, startX, startY, maxWidth, lineHeight, chunks, 
 
     words.forEach((w, idx) => {
         const wWidth = textWidth(w.text, w.weight);
-        if (currentWidth + wWidth > maxWidth && currentLine.length > 0) {
+        // Se a palavra não cabe na largura restante, quebra a linha (mantém palavra intacta)
+        if (currentWidth + wWidth > wrapWidth && currentLine.length > 0) {
             flushLine();
         }
         currentLine.push(w);
