@@ -229,7 +229,9 @@ body {
     margin-bottom: 30px;
     flex-wrap: wrap;
     align-items: center;
-    flex-direction: row;}
+    flex-direction: row;
+    gap: 12px;
+}
 
 .legend-item {
     display: flex;

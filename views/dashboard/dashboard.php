@@ -18,25 +18,6 @@ include("../generics/sidebar.php");
 <body>
 
 <main class="main-content" id="mainContent">
-    <!-- Filtro de Data -->
-    <div class="date-filter-bar" style="display: flex; gap: 16px; align-items: center; padding: 16px; background: rgba(30, 41, 59, 0.5); border-radius: 12px; margin-bottom: 24px; flex-wrap: wrap;">
-        <div style="display: flex; align-items: center; gap: 8px;">
-            <i class="fas fa-calendar-alt" style="color: #94a3b8;"></i>
-            <label style="color: #f1f5f9; font-weight: 500; margin: 0;">Período:</label>
-        </div>
-        <input type="date" id="startDate" style="padding: 8px 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.05); color: #f1f5f9; cursor: pointer;">
-        <span style="color: #94a3b8;">até</span>
-        <input type="date" id="endDate" style="padding: 8px 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.05); color: #f1f5f9; cursor: pointer;">
-        <button class="btn btn-primary" onclick="applyDateFilter()" style="padding: 8px 16px; display: inline-flex; align-items: center; gap: 8px;">
-            <i class="fas fa-filter"></i>
-            Filtrar
-        </button>
-        <button class="btn btn-secondary" onclick="resetDateFilter()" style="padding: 8px 16px; display: inline-flex; align-items: center; gap: 8px;">
-            <i class="fas fa-redo"></i>
-            Resetar
-        </button>
-    </div>
-
     <!-- Stats Grid -->
     <div class="stats-grid">
         <div class="stat-card">

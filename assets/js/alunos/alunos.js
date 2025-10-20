@@ -27,8 +27,37 @@ function initializeDateFilter() {
     const endDate = new Date();
     const endDateStr = endDate.toISOString().split('T')[0];
     
-    startDateInput.value = startDateStr;
-    endDateInput.value = endDateStr;
+    if (startDateInput._flatpickr) {
+        startDateInput._flatpickr.setDate(startDateStr, true, "Y-m-d");
+    } else {
+        startDateInput.value = startDateStr;
+    }
+    if (endDateInput._flatpickr) {
+        endDateInput._flatpickr.setDate(endDateStr, true, "Y-m-d");
+    } else {
+        endDateInput.value = endDateStr;
+    }
+}
+
+/**
+ * Formatar data no formato brasileiro dd/mm/yyyy
+ */
+function formatDateBR(date) {
+    const day = String(date.getDate()).padStart(2, '0');
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const year = date.getFullYear();
+    return `${day}/${month}/${year}`;
+}
+
+/**
+ * Converter data brasileira (dd/mm/yyyy) para Date object
+ */
+function parseDateBR(dateStr) {
+    if (!dateStr || dateStr.indexOf('/') === -1) return null;
+    const parts = dateStr.split('/');
+    if (parts.length !== 3) return null;
+    // Formato: dd/mm/yyyy -> new Date(year, month-1, day)
+    return new Date(parseInt(parts[2]), parseInt(parts[1]) - 1, parseInt(parts[0]));
 }
 
 /**
@@ -169,15 +198,27 @@ function applyFiltersAndRender() {
     const startDateInput = document.getElementById('startDate');
     const endDateInput = document.getElementById('endDate');
     
-    if (startDateInput && endDateInput && startDateInput.value && endDateInput.value) {
-        const startDate = new Date(startDateInput.value + 'T00:00:00');
-        const endDate = new Date(endDateInput.value + 'T23:59:59');
-        
-        filteredStudents = filteredStudents.filter(aluno => {
-            if (!aluno.created_at && !aluno.createdAt) return true; // Incluir se não tiver data
-            const studentDate = new Date(aluno.created_at || aluno.createdAt);
-            return studentDate >= startDate && studentDate <= endDate;
-        });
+    if (startDateInput && endDateInput) {
+        let startDate = startDateInput._flatpickr ? startDateInput._flatpickr.selectedDates[0] : null;
+        let endDate = endDateInput._flatpickr ? endDateInput._flatpickr.selectedDates[0] : null;
+
+        if (!startDate && startDateInput.value) {
+            startDate = startDateInput.value.includes('-') ? new Date(startDateInput.value + 'T00:00:00') : parseDateBR(startDateInput.value);
+        }
+        if (!endDate && endDateInput.value) {
+            endDate = endDateInput.value.includes('-') ? new Date(endDateInput.value + 'T23:59:59') : parseDateBR(endDateInput.value);
+        }
+
+        if (startDate && endDate) {
+            startDate.setHours(0, 0, 0, 0);
+            endDate.setHours(23, 59, 59, 999);
+            
+            filteredStudents = filteredStudents.filter(aluno => {
+                if (!aluno.created_at && !aluno.createdAt) return true; // Incluir se não tiver data
+                const studentDate = new Date(aluno.created_at || aluno.createdAt);
+                return studentDate >= startDate && studentDate <= endDate;
+            });
+        }
     }
     
     // Filtro por busca de texto

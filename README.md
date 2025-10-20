@@ -1,57 +1,41 @@
 # GradMate
 
-Projeto de controle de TCC — interface administrativa para gerenciar projetos, alunos, professores e cursos.
+Painel administrativo para organizar TCC: projetos, alunos, professores e cursos, tudo em um só lugar. O foco é ser simples de rodar localmente e direto de usar.
 
-## Visão geral
+## O que tem aqui
 
-- Linguagem: PHP
-- Frontend: CSS e JS organizados em `css/` e `assets/js/`.
-- Views estão em `views/` com subpastas por área (projeto, alunos, professores, etc.).
+- Backend em PHP (views em `views/`), sem framework pesado.
+- Frontend com CSS e JS separados por área (`css/` e `assets/js/`).
+- Componentes genéricos reutilizáveis em `views/generics/` (header e sidebar).
 
-## Estrutura de pastas
+## Como rodar localmente (com XAMPP)
 
-- `views/` — arquivos .php que representam telas e templates parciais (`generics/header.php`, `generics/sidebar.php`).
-- `assets/` — imagens, libs e scripts JS.
-- `css/` — estilos por área.
-- `index.php` — ponto de entrada público.
+1) Copie a pasta `gradmate` para o `htdocs` do XAMPP (ex.: `C:\xampp\htdocs\gradmate`).
+2) Inicie Apache e MySQL no painel do XAMPP.
+3) Crie o banco e importe o esquema (se aplicável).
+4) Abra no navegador: `http://localhost/gradmate/`.
+
+Observação: as views usam caminhos relativos (ex.: `../../assets/...`). Se mudar a estrutura, ajuste a base/paths no `config/config.php`.
 
 ## Requisitos
 
-- PHP (recomendado 7.4+)
-- MySQL (ou MariaDB)
-- XAMPP (opcional) para desenvolvimento local
+- PHP 7.4+ (8.x funciona também)
+- MySQL/MariaDB
+- XAMPP (ou stack equivalente)
 
-## Como rodar localmente (XAMPP)
+## Estrutura rápida
 
-1. Coloque a pasta `gradmate` dentro do diretório `htdocs` do XAMPP (ex.: `C:\xampp\htdocs\gradmate`).
-2. Inicie o Apache e MySQL via painel do XAMPP.
-3. Crie o banco de dados e importe o dump/estrutura se existir (não incluído neste repositório).
-4. Abra no navegador: `http://localhost/gradmate/` ou `http://localhost/gradmate/index.php`.
+- `index.php` — entrada da aplicação.
+- `views/` — páginas por módulo (projeto, alunos, etc.) e parciais em `generics/`.
+- `assets/js/` — scripts por módulo (ex.: `projetos.js`, `alunos.js`).
+- `css/` — estilos por módulo (ex.: `projetos.css`, `alunos.css`).
+- `config/` — config de ambiente e helpers (ex.: `config.php`, `ver()`).
 
-> Observação: paths nas views usam caminhos relativos (ex.: `../../assets/...`). Se mover o projeto para outro path, ajuste `BASE_URL`/paths conforme necessário.
+## Dicas de desenvolvimento
 
-## Configurações recomendadas
+- Em dev, se quiser ver mudanças de CSS/JS sem cache, deixe `ver()` com timestamp. Em produção, trave com uma versão fixa (ex.: `1.0.0`).
+- Para debugar PHP, habilite `display_errors` e `error_reporting(E_ALL)`. Formatação: PHP CS Fixer ajuda.
 
-- Adicionar arquivo de configuração (ex.: `config.php`) para armazenar credenciais de banco, `BASE_URL` e settings de ambiente.
-- Verificar que sessões e controle de acesso estejam configurados (não presente nas views fornecidas).
+## Documentação
 
-## Boas práticas e melhorias aplicadas
-
-- Versão de assets centralizada: criado `config/config.php` com `ASSET_VERSION` e helper `ver()`. Em produção, use versão estática (ex.: `1.0.0`) em vez de `date('YmdHis')`.
-	- Exemplo: `<link rel="stylesheet" href="/css/app.css<?php echo ver(); ?>">`
-- Includes centralizados: views passam a incluir `config/config.php` e usar o helper de versão; removida duplicação entre `header.php` e `sidebar.php`.
-- Escape de saída: helper `e()` criado (atalho para `htmlspecialchars`) e aplicado onde há valores dinâmicos exibidos.
-
-## Desenvolvimento e troubleshooting
-
-- Linter/formatadores sugeridos: PHP CS Fixer, ESLint.
-- Para depurar erros PHP, ative `display_errors` em ambiente de desenvolvimento e configure `error_reporting(E_ALL)`.
-
-### Variáveis de ambiente
-- `APP_ENV=production|development` (opcional; padrão: development)
-- `APP_VERSION=1.0.0` (opcional; controla o sufixo de versão dos assets)
-
-
-## Documentação detalhada
-
-Consulte a documentação completa em `docs/DOCUMENTATION.md` para arquitetura, fluxos, endpoints esperados, padrões e roadmap.
+Para detalhes de arquitetura e fluxos, veja `docs/DOCUMENTATION.md`.

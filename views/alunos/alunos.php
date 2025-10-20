@@ -7,6 +7,8 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <?php include_once(__DIR__ . '/../../config/config.php'); ?>
     <link rel="stylesheet" href="../../css/alunos/alunos.css<?php echo ver(); ?>">
+    <!-- Flatpickr CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
     <style>
     </style>
 </head>
@@ -64,14 +66,13 @@ include("../generics/sidebar.php");
             <input type="text" id="searchInput" placeholder="Buscar alunos...">
         </div>
         <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
+            <!-- Filtro de Data (transparente e automático) -->
             <div style="display: flex; gap: 8px; align-items: center;">
-                <input type="date" id="startDate" title="Data inicial (últimos 4 anos)" style="padding: 10px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.05); color: #f1f5f9; cursor: pointer;">
-                <span style="color: #94a3b8;">até</span>
-                <input type="date" id="endDate" title="Data final" style="padding: 10px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.05); color: #f1f5f9; cursor: pointer;">
+                <i class="fas fa-calendar-alt" style="color: #475569;"></i>
+                <input type="text" id="startDate" title="Data inicial (últimos 4 anos)" onchange="applyDateFilter()" style="padding: 8px 12px; border-radius: 8px; border: 2px solid #cbd5e1; background: #ffffff; color: #1e293b; cursor: pointer; font-weight: 500; font-size: 0.9rem; width: 150px;">
+                <span style="color: #475569; font-weight: 500;">até</span>
+                <input type="text" id="endDate" title="Data final" onchange="applyDateFilter()" style="padding: 8px 12px; border-radius: 8px; border: 2px solid #cbd5e1; background: #ffffff; color: #1e293b; cursor: pointer; font-weight: 500; font-size: 0.9rem; width: 150px;">
             </div>
-            <button class="btn btn-secondary" onclick="applyDateFilter()" title="Filtrar por período">
-                <i class="fas fa-filter"></i>
-            </button>
             <button class="btn btn-primary" onclick="openModal()">
                 <i class="fas fa-plus"></i>
                 Novo Aluno
@@ -192,6 +193,39 @@ include("../generics/sidebar.php");
         </div>
     </div>
 </main>
+
+<!-- Flatpickr JS -->
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/pt.js"></script>
+<script>
+    // Inicializar Flatpickr nos inputs de data
+    flatpickr("#startDate", {
+        locale: { ...flatpickr.l10ns.pt, firstDayOfWeek: 0 },
+        dateFormat: "Y-m-d",
+        altInput: true,
+        altFormat: "d/m/Y",
+        altInputClass: "gm-date-input",
+        onChange: function(selectedDates, dateStr, instance) {
+            applyDateFilter();
+        },
+        defaultDate: document.getElementById('startDate').value || undefined,
+        // firstDayOfWeek já vem como 1 (segunda) no locale pt
+    });
+    
+    flatpickr("#endDate", {
+        locale: { ...flatpickr.l10ns.pt, firstDayOfWeek: 0 },
+        dateFormat: "Y-m-d",
+        altInput: true,
+        altFormat: "d/m/Y",
+        altInputClass: "gm-date-input",
+        onChange: function(selectedDates, dateStr, instance) {
+            applyDateFilter();
+        },
+        defaultDate: document.getElementById('endDate').value || undefined,
+        // firstDayOfWeek já vem como 1 (segunda) no locale pt
+    });
+</script>
+
 </body>
 </html>
 <script src="../../assets/js/alunos/alunos.js<?php echo ver(); ?>"></script>

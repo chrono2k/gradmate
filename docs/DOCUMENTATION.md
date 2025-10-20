@@ -122,9 +122,34 @@ Arquivos do Projeto
 
 
 
----
+## 9) Filtros de Data (Flatpickr)
 
-# Manual de Uso (Passo a passo)
+As telas de Projetos e Alunos usam Flatpickr para seleção de período. Pontos importantes:
+
+- Inputs são `type="text"` e o Flatpickr controla a UI (evita conflito com date nativo do navegador).
+- Formato exibido (visível): brasileiro `dd/mm/aaaa` via `altInput`/`altFormat`.
+- Formato interno (valor real): ISO `aaaa-mm-dd` (`dateFormat: 'Y-m-d'`).
+- Locale: português com a semana iniciando em domingo (`firstDayOfWeek: 0`).
+- O calendário foi ajustado com CSS para um grid estável de 7 colunas (nada de “8 dias” por linha):
+  - `.flatpickr-weekdays { display: block }` e `.flatpickr-weekdaycontainer { display: grid; grid-template-columns: repeat(7, 1fr) }`.
+  - `.dayContainer { display: grid; grid-template-columns: repeat(7, 1fr) }`.
+  - Labels dos dias com espaçamento e padding para não cortar (ex.: “Sab”).
+- Cabeçalho (mês/ano) com dropdown estilizado, ícones laterais e espaçamento para não sobrepor o texto.
+- Filtro é aplicado automaticamente no `onChange` (não há botão “Aplicar”).
+
+Estilo do input visível
+
+- Usamos `altInputClass: 'gm-date-input'` para aplicar alto contraste (texto escuro, fundo branco, borda evidente).
+- Há um fallback para alguns temas do Flatpickr que usam classes padrão (ex.: `input.form-control.input`).
+
+Abrir no mês correto
+
+- O valor padrão é definido via `defaultDate` e, no JS, forçamos `setDate()` na instância do Flatpickr para garantir que o calendário abra no mês certo (ex.: 01/01 abre janeiro).
+
+Depuração rápida
+
+- Se os dias da semana parecerem desalinhados, limpe o cache do navegador (CSS novo) e confira se o locale está sendo carregado antes da inicialização do Flatpickr.
+- Se precisar alterar o dia inicial da semana, troque `firstDayOfWeek` para `1` (segunda) no objeto de locale passado para o Flatpickr.
 
 > Este guia é focado no usuário da aplicação (admin, coordenação, etc.). Mostra como entrar, navegar e executar as tarefas principais no GradMate.
 

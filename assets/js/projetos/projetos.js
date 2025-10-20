@@ -22,14 +22,44 @@ function initializeDateFilter() {
     
     // Data inicial: 1º de janeiro do ano atual
     const startDate = new Date(new Date().getFullYear(), 0, 1);
-    const startDateStr = startDate.toISOString().split('T')[0];
+    const startDateStr = startDate.toISOString().split('T')[0]; // ISO para flatpickr
     
     // Data final: hoje
     const endDate = new Date();
     const endDateStr = endDate.toISOString().split('T')[0];
     
-    startDateInput.value = startDateStr;
-    endDateInput.value = endDateStr;
+    // Se já existe instância do flatpickr, use o setDate para sincronizar e abrir no mês correto
+    if (startDateInput._flatpickr) {
+        startDateInput._flatpickr.setDate(startDateStr, true, "Y-m-d");
+    } else {
+        startDateInput.value = startDateStr;
+    }
+    if (endDateInput._flatpickr) {
+        endDateInput._flatpickr.setDate(endDateStr, true, "Y-m-d");
+    } else {
+        endDateInput.value = endDateStr;
+    }
+}
+
+/**
+ * Formatar data no formato brasileiro dd/mm/yyyy
+ */
+function formatDateBR(date) {
+    const day = String(date.getDate()).padStart(2, '0');
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const year = date.getFullYear();
+    return `${day}/${month}/${year}`;
+}
+
+/**
+ * Converter data brasileira (dd/mm/yyyy) para Date object
+ */
+function parseDateBR(dateStr) {
+    if (!dateStr || dateStr.indexOf('/') === -1) return null;
+    const parts = dateStr.split('/');
+    if (parts.length !== 3) return null;
+    // Formato: dd/mm/yyyy -> new Date(year, month-1, day)
+    return new Date(parseInt(parts[2]), parseInt(parts[1]) - 1, parseInt(parts[0]));
 }
 
 /**
@@ -159,15 +189,29 @@ function applyFiltersAndRender() {
     const startDateInput = document.getElementById('startDate');
     const endDateInput = document.getElementById('endDate');
     
-    if (startDateInput && endDateInput && startDateInput.value && endDateInput.value) {
-        const startDate = new Date(startDateInput.value + 'T00:00:00');
-        const endDate = new Date(endDateInput.value + 'T23:59:59');
+    if (startDateInput && endDateInput) {
+        // Flatpickr com altInput usa um input oculto (ISO) e um visível (BR). Pegue a data da instância quando possível.
+        let startDate = startDateInput._flatpickr ? startDateInput._flatpickr.selectedDates[0] : null;
+        let endDate = endDateInput._flatpickr ? endDateInput._flatpickr.selectedDates[0] : null;
         
-        filteredProjetos = filteredProjetos.filter(projeto => {
-            if (!projeto.created_at && !projeto.createdAt) return true; // Incluir se não tiver data
-            const projectDate = new Date(projeto.created_at || projeto.createdAt);
-            return projectDate >= startDate && projectDate <= endDate;
-        });
+        // Fallback: tentar ler do valor do input (pode ser ISO ou BR)
+        if (!startDate && startDateInput.value) {
+            startDate = startDateInput.value.includes('-') ? new Date(startDateInput.value + 'T00:00:00') : parseDateBR(startDateInput.value);
+        }
+        if (!endDate && endDateInput.value) {
+            endDate = endDateInput.value.includes('-') ? new Date(endDateInput.value + 'T23:59:59') : parseDateBR(endDateInput.value);
+        }
+        
+        if (startDate && endDate) {
+            startDate.setHours(0, 0, 0, 0);
+            endDate.setHours(23, 59, 59, 999);
+            
+            filteredProjetos = filteredProjetos.filter(projeto => {
+                if (!projeto.created_at && !projeto.createdAt) return true; // Incluir se não tiver data
+                const projectDate = new Date(projeto.created_at || projeto.createdAt);
+                return projectDate >= startDate && projectDate <= endDate;
+            });
+        }
     }
     
     // Filtro por status (se ativo)
