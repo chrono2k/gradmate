@@ -1,4 +1,3 @@
-// Global state
 let adminsData = [];
 let currentConfirmAction = null;
 let currentPasswordData = null;

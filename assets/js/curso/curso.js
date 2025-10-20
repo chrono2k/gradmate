@@ -8,14 +8,12 @@ document.addEventListener('DOMContentLoaded', () => {
     loadCursos();
 });
 
-// Aplicar permissões quando o usuário é carregado
 document.addEventListener('userLoaded', (event) => {
     const user = event.detail;
     const authority = String(user?.authority || '').toLowerCase();
     if (authority === 'teacher' || authority === 'professor') {
         isTeacher = true;
         applyTeacherCourseRestrictions();
-        // Recarrega a tabela para refletir remoção dos botões de ação
         if (Array.isArray(cursos) && cursos.length) {
             renderCursosTable(cursos);
             renderPagination(cursos);
@@ -24,7 +22,6 @@ document.addEventListener('userLoaded', (event) => {
 });
 
 function applyTeacherCourseRestrictions() {
-    // Oculta o botão "Novo Curso"
     const newBtn = document.querySelector('button.btn.btn-primary[onclick="openModal()"]');
     if (newBtn) {
         newBtn.disabled = true;

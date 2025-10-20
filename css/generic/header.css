@@ -881,8 +881,12 @@ td {
 
 .user-dropdown-item:hover {
     background: rgba(255, 255, 255, 0.1);
+    color: var(--text-light) !important;
 }
 
+.user-dropdown-item:hover span {
+ color: var(--text-light) !important;
+}
 .user-dropdown-item i {
     width: 20px;
     font-size: 0.9rem;
