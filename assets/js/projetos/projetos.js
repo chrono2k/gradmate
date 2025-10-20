@@ -3,6 +3,7 @@ let allCourses = [];
 let editingId = null;
 let currentPage = 1;
 const itemsPerPage = 10;
+let currentStatusFilter = null; // Filtro ativo de status
 
 document.addEventListener('DOMContentLoaded', () => {
     loadProjetos();
@@ -89,31 +90,8 @@ async function loadProjetos() {
 
         if (response.success) {
             projetos = response.projects;
-            let filteredProjetos = projetos;
-            if (searchTerm) {
-                filteredProjetos = projetos.filter(projeto =>
-                    projeto.name.toLowerCase().includes(searchTerm) ||
-                    (projeto.observation && projeto.observation.toLowerCase().includes(searchTerm))
-                );
-            }
-
-            if (filteredProjetos.length === 0) {
-                tbody.innerHTML = `
-                    <tr>
-                        <td colspan="5">
-                            <div class="empty-state">
-                                <i class="fas fa-inbox"></i>
-                                <h3>Nenhum projeto encontrado</h3>
-                                <p>${searchTerm ? 'Tente buscar por outro termo' : 'Comece cadastrando um novo projeto'}</p>
-                            </div>
-                        </td>
-                    </tr>
-                `;
-                return;
-            }
-            renderProjetosTable(filteredProjetos);
-            renderPagination(filteredProjetos);
-            updateStats()
+            applyFiltersAndRender();
+            updateStats();
         } else {
             throw new Error(response.message || 'Erro ao carregar projetos');
         }
@@ -139,6 +117,83 @@ async function loadProjetos() {
 }
 
 /**
+ * Aplicar filtros de status e busca, depois renderizar
+ */
+function applyFiltersAndRender() {
+    const tbody = document.getElementById('projectTableBody');
+    const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+    
+    let filteredProjetos = projetos;
+    
+    // Filtro por status (se ativo)
+    if (currentStatusFilter) {
+        filteredProjetos = filteredProjetos.filter(projeto => 
+            (projeto.status || 'Pré-projeto') === currentStatusFilter
+        );
+    }
+    
+    // Filtro por busca de texto
+    if (searchTerm) {
+        filteredProjetos = filteredProjetos.filter(projeto =>
+            projeto.name.toLowerCase().includes(searchTerm) ||
+            (projeto.observation && projeto.observation.toLowerCase().includes(searchTerm))
+        );
+    }
+
+    if (filteredProjetos.length === 0) {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="5">
+                    <div class="empty-state">
+                        <i class="fas fa-inbox"></i>
+                        <h3>Nenhum projeto encontrado</h3>
+                        <p>${currentStatusFilter ? `Nenhum projeto com status "${currentStatusFilter}"` : (searchTerm ? 'Tente buscar por outro termo' : 'Comece cadastrando um novo projeto')}</p>
+                        ${currentStatusFilter ? '<button class="btn btn-secondary" onclick="clearStatusFilter()" style="margin-top: 15px;"><i class="fas fa-times"></i> Limpar Filtro</button>' : ''}
+                    </div>
+                </td>
+            </tr>
+        `;
+        return;
+    }
+    
+    currentPage = 1; // Reset para primeira página ao filtrar
+    renderProjetosTable(filteredProjetos);
+    renderPagination(filteredProjetos);
+}
+
+/**
+ * Filtrar projetos por status (chamado ao clicar nos cards)
+ */
+function filterByStatus(status) {
+    // Se clicar no mesmo status, remove o filtro (toggle)
+    if (currentStatusFilter === status) {
+        clearStatusFilter();
+        return;
+    }
+    
+    currentStatusFilter = status;
+    
+    // Atualizar visual dos cards (destacar o ativo)
+    document.querySelectorAll('.stat-card').forEach(card => {
+        card.classList.remove('active');
+    });
+    document.querySelector(`.stat-card[data-status="${status}"]`)?.classList.add('active');
+    
+    applyFiltersAndRender();
+}
+
+/**
+ * Limpar filtro de status
+ */
+function clearStatusFilter() {
+    currentStatusFilter = null;
+    document.querySelectorAll('.stat-card').forEach(card => {
+        card.classList.remove('active');
+    });
+    applyFiltersAndRender();
+}
+
+/**
  * Formatar data
  */
 function formatDate(dateString) {
@@ -151,22 +206,28 @@ function formatDate(dateString) {
  * Atualizar estatísticas dos cards
  */
 function updateStats() {
-    document.getElementById('totalProjects').textContent = projetos.length;
+    // Contar projetos por status
+    const statusCounts = {
+        'Pré-projeto': 0,
+        'Qualificação': 0,
+        'Defesa': 0,
+        'Concluído': 0,
+        'Trancado': 0
+    };
     
-    // Projetos sem pendência: aqueles que não têm nenhum report com status "pendente"
-    const noPendency = projetos.filter(projeto => {
-        if (!projeto.reports || projeto.reports.length === 0) return true; // sem reports = sem pendência
-        return !projeto.reports.some(report => report.status?.toLowerCase() === 'pendente');
+    projetos.forEach(projeto => {
+        const status = projeto.status || 'Pré-projeto';
+        if (statusCounts.hasOwnProperty(status)) {
+            statusCounts[status]++;
+        }
     });
     
-    // Projetos com pendência: aqueles que têm pelo menos um report com status "pendente"
-    const withPendency = projetos.filter(projeto => {
-        if (!projeto.reports || projeto.reports.length === 0) return false;
-        return projeto.reports.some(report => report.status?.toLowerCase() === 'pendente');
-    });
-    
-    document.getElementById('noPendencyProjects').textContent = noPendency.length;
-    document.getElementById('pendencyProjects').textContent = withPendency.length;
+    // Atualizar contadores nos cards
+    document.getElementById('countPreProjeto').textContent = statusCounts['Pré-projeto'];
+    document.getElementById('countQualificacao').textContent = statusCounts['Qualificação'];
+    document.getElementById('countDefesa').textContent = statusCounts['Defesa'];
+    document.getElementById('countConcluido').textContent = statusCounts['Concluído'];
+    document.getElementById('countTrancado').textContent = statusCounts['Trancado'];
 }
 
 /**
@@ -355,7 +416,7 @@ async function searchCoursesAdvanced(filters = {}) {
 
 document.getElementById('searchInput').addEventListener('input', () => {
     clearTimeout(window.searchTimeout);
-    window.searchTimeout = setTimeout(loadProjetos, 500);
+    window.searchTimeout = setTimeout(applyFiltersAndRender, 500);
 });
 
 document.getElementById('modalOverlay').addEventListener('click', (e) => {

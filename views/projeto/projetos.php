@@ -25,31 +25,49 @@ include("../generics/sidebar.php");
         </h1>
     </div>
     <div class="stats-grid">
-        <div class="stat-card">
-            <div class="stat-icon primary">
-                <i class="fas fa-user"></i>
+        <div class="stat-card clickable" onclick="filterByStatus('Pré-projeto')" data-status="Pré-projeto">
+            <div class="stat-icon" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                <i class="fas fa-seedling"></i>
             </div>
             <div class="stat-info">
-                <h3 id="totalProjects">0</h3>
-                <p>Total de Projetos</p>
+                <h3 id="countPreProjeto">0</h3>
+                <p>Pré-projeto</p>
             </div>
         </div>
-        <div class="stat-card">
-            <div class="stat-icon success">
+        <div class="stat-card clickable" onclick="filterByStatus('Qualificação')" data-status="Qualificação">
+            <div class="stat-icon" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+                <i class="fas fa-clipboard-check"></i>
+            </div>
+            <div class="stat-info">
+                <h3 id="countQualificacao">0</h3>
+                <p>Qualificação</p>
+            </div>
+        </div>
+        <div class="stat-card clickable" onclick="filterByStatus('Defesa')" data-status="Defesa">
+            <div class="stat-icon" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
+                <i class="fas fa-shield-alt"></i>
+            </div>
+            <div class="stat-info">
+                <h3 id="countDefesa">0</h3>
+                <p>Defesa</p>
+            </div>
+        </div>
+        <div class="stat-card clickable" onclick="filterByStatus('Concluído')" data-status="Concluído">
+            <div class="stat-icon" style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);">
                 <i class="fas fa-check-circle"></i>
             </div>
             <div class="stat-info">
-                <h3 id="noPendencyProjects">0</h3>
-                <p>Projetos sem pendencia</p>
+                <h3 id="countConcluido">0</h3>
+                <p>Concluído</p>
             </div>
         </div>
-        <div class="stat-card">
-            <div class="stat-icon danger">
-                <i class="fa-solid fa-exclamation"></i>
+        <div class="stat-card clickable" onclick="filterByStatus('Trancado')" data-status="Trancado">
+            <div class="stat-icon" style="background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);">
+                <i class="fas fa-lock"></i>
             </div>
             <div class="stat-info">
-                <h3 id="pendencyProjects">5</h3>
-                <p>Projetos com pendencias</p>
+                <h3 id="countTrancado">0</h3>
+                <p>Trancado</p>
             </div>
         </div>
     </div>
