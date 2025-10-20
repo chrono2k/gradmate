@@ -4,8 +4,40 @@ let currentPage = 1;
 const itemsPerPage = 10;
 
 document.addEventListener('DOMContentLoaded', () => {
+    initializeDateFilter(); // Configurar datas padrão (últimos 4 anos)
     loadStudent();
 });
+
+/**
+ * Inicializar filtro de data com valores padrão (últimos 4 anos)
+ */
+function initializeDateFilter() {
+    const startDateInput = document.getElementById('startDate');
+    const endDateInput = document.getElementById('endDate');
+    
+    if (!startDateInput || !endDateInput) return;
+    
+    // Data inicial: 4 anos atrás (duração do curso)
+    const startDate = new Date();
+    startDate.setFullYear(startDate.getFullYear() - 4);
+    startDate.setMonth(0, 1); // 1º de janeiro
+    const startDateStr = startDate.toISOString().split('T')[0];
+    
+    // Data final: hoje
+    const endDate = new Date();
+    const endDateStr = endDate.toISOString().split('T')[0];
+    
+    startDateInput.value = startDateStr;
+    endDateInput.value = endDateStr;
+}
+
+/**
+ * Aplicar filtro de data
+ */
+function applyDateFilter() {
+    currentPage = 1; // Reset para primeira página
+    applyFiltersAndRender();
+}
 
 
 function renderStudentsTable(filteredStudents) {
@@ -83,11 +115,10 @@ function renderPagination(filteredStudent) {
  */
 async function loadStudent() {
     const tbody = document.getElementById('studentsTableBody');
-    const searchTerm = document.getElementById('searchInput').value.toLowerCase();
 
     tbody.innerHTML = `
         <tr>
-            <td colspan="5" style="text-align: center; padding: 40px;">
+            <td colspan="7" style="text-align: center; padding: 40px;">
                 <i class="fas fa-spinner fa-spin" style="font-size: 2rem; color: var(--primary);"></i>
                 <p style="margin-top: 10px; color: var(--text-gray);">Carregando alunos...</p>
             </td>
@@ -99,31 +130,8 @@ async function loadStudent() {
 
         if (response.success) {
             alunos = response.students;
-            let filteredStudents = alunos;
-            if (searchTerm) {
-                filteredStudents = alunos.filter(aluno =>
-                    aluno.name.toLowerCase().includes(searchTerm) ||
-                    (aluno.observation && aluno.observation.toLowerCase().includes(searchTerm))
-                );
-            }
-
-            if (filteredStudents.length === 0) {
-                tbody.innerHTML = `
-                    <tr>
-                        <td colspan="5">
-                            <div class="empty-state">
-                                <i class="fas fa-inbox "></i>
-                                <h3>Nenhum aluno encontrado</h3>
-                                <p>${searchTerm ? 'Tente buscar por outro termo' : 'Comece cadastrando um novo aluno'}</p>
-                            </div>
-                        </td>
-                    </tr>
-                `;
-                return;
-            }
-            renderStudentsTable(filteredStudents);
-            renderPagination(filteredStudents);
-            updateStats()
+            applyFiltersAndRender();
+            updateStats();
         } else {
             throw new Error(response.message || 'Erro ao carregar alunos');
         }
@@ -132,7 +140,7 @@ async function loadStudent() {
         console.error('Erro ao carregar alunos:', error);
         tbody.innerHTML = `
             <tr>
-                <td colspan="5">
+                <td colspan="7">
                     <div class="empty-state">
                         <i class="fas fa-exclamation-triangle empty-icon" style="color: var(--danger);"></i>
                         <h3>Erro ao carregar alunos</h3>
@@ -146,6 +154,59 @@ async function loadStudent() {
         `;
         showToast('Erro', 'Não foi possível carregar os alunos', 'error');
     }
+}
+
+/**
+ * Aplicar filtros de data e busca, depois renderizar
+ */
+function applyFiltersAndRender() {
+    const tbody = document.getElementById('studentsTableBody');
+    const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+    
+    let filteredStudents = alunos;
+    
+    // Filtro por data
+    const startDateInput = document.getElementById('startDate');
+    const endDateInput = document.getElementById('endDate');
+    
+    if (startDateInput && endDateInput && startDateInput.value && endDateInput.value) {
+        const startDate = new Date(startDateInput.value + 'T00:00:00');
+        const endDate = new Date(endDateInput.value + 'T23:59:59');
+        
+        filteredStudents = filteredStudents.filter(aluno => {
+            if (!aluno.created_at && !aluno.createdAt) return true; // Incluir se não tiver data
+            const studentDate = new Date(aluno.created_at || aluno.createdAt);
+            return studentDate >= startDate && studentDate <= endDate;
+        });
+    }
+    
+    // Filtro por busca de texto
+    if (searchTerm) {
+        filteredStudents = filteredStudents.filter(aluno =>
+            aluno.name.toLowerCase().includes(searchTerm) ||
+            (aluno.observation && aluno.observation.toLowerCase().includes(searchTerm)) ||
+            (aluno.registration && aluno.registration.toLowerCase().includes(searchTerm))
+        );
+    }
+
+    if (filteredStudents.length === 0) {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="7">
+                    <div class="empty-state">
+                        <i class="fas fa-inbox"></i>
+                        <h3>Nenhum aluno encontrado</h3>
+                        <p>${searchTerm ? 'Tente buscar por outro termo' : 'Comece cadastrando um novo aluno'}</p>
+                    </div>
+                </td>
+            </tr>
+        `;
+        return;
+    }
+    
+    currentPage = 1; // Reset para primeira página ao filtrar
+    renderStudentsTable(filteredStudents);
+    renderPagination(filteredStudents);
 }
 
 /**
@@ -353,7 +414,7 @@ async function searchStudentsAdvanced(filters = {}) {
 
 document.getElementById('searchInput').addEventListener('input', () => {
     clearTimeout(window.searchTimeout);
-    window.searchTimeout = setTimeout(loadStudent, 500);
+    window.searchTimeout = setTimeout(applyFiltersAndRender, 500);
 });
 
 document.getElementById('modalOverlay').addEventListener('click', (e) => {

@@ -110,8 +110,45 @@ function setupLegendEditing() {
 document.addEventListener('DOMContentLoaded', () => {
     applyLegendLabels();
     setupLegendEditing();
+    initializeDateFilter(); // Configurar datas padrão
     loadProjectStats(); // Carregar estatísticas reais dos projetos
 });
+
+/**
+ * Inicializar filtro de data com valores padrão
+ */
+function initializeDateFilter() {
+    const startDateInput = document.getElementById('startDate');
+    const endDateInput = document.getElementById('endDate');
+    
+    if (!startDateInput || !endDateInput) return;
+    
+    // Data inicial: 1º de janeiro do ano atual
+    const startDate = new Date(new Date().getFullYear(), 0, 1);
+    const startDateStr = startDate.toISOString().split('T')[0];
+    
+    // Data final: hoje
+    const endDate = new Date();
+    const endDateStr = endDate.toISOString().split('T')[0];
+    
+    startDateInput.value = startDateStr;
+    endDateInput.value = endDateStr;
+}
+
+/**
+ * Aplicar filtro de data
+ */
+function applyDateFilter() {
+    loadProjectStats();
+}
+
+/**
+ * Resetar filtro de data para valores padrão
+ */
+function resetDateFilter() {
+    initializeDateFilter();
+    loadProjectStats();
+}
 
 // Apply RBAC once user info is available
 document.addEventListener('userLoaded', (event) => {
@@ -143,7 +180,22 @@ async function loadProjectStats() {
         const response = await apiGet('project/?status=all');
         
         if (response.success) {
-            const projects = response.projects || [];
+            let projects = response.projects || [];
+            
+            // Aplicar filtro de data se campos estiverem preenchidos
+            const startDateInput = document.getElementById('startDate');
+            const endDateInput = document.getElementById('endDate');
+            
+            if (startDateInput && endDateInput && startDateInput.value && endDateInput.value) {
+                const startDate = new Date(startDateInput.value + 'T00:00:00');
+                const endDate = new Date(endDateInput.value + 'T23:59:59');
+                
+                projects = projects.filter(p => {
+                    if (!p.created_at && !p.createdAt) return true; // Incluir se não tiver data
+                    const projectDate = new Date(p.created_at || p.createdAt);
+                    return projectDate >= startDate && projectDate <= endDate;
+                });
+            }
             
             // Total de projetos
             const total = projects.length;

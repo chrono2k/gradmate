@@ -6,9 +6,39 @@ const itemsPerPage = 10;
 let currentStatusFilter = null; // Filtro ativo de status
 
 document.addEventListener('DOMContentLoaded', () => {
+    initializeDateFilter(); // Configurar datas padrão
     loadProjetos();
     loadCourses();
 });
+
+/**
+ * Inicializar filtro de data com valores padrão
+ */
+function initializeDateFilter() {
+    const startDateInput = document.getElementById('startDate');
+    const endDateInput = document.getElementById('endDate');
+    
+    if (!startDateInput || !endDateInput) return;
+    
+    // Data inicial: 1º de janeiro do ano atual
+    const startDate = new Date(new Date().getFullYear(), 0, 1);
+    const startDateStr = startDate.toISOString().split('T')[0];
+    
+    // Data final: hoje
+    const endDate = new Date();
+    const endDateStr = endDate.toISOString().split('T')[0];
+    
+    startDateInput.value = startDateStr;
+    endDateInput.value = endDateStr;
+}
+
+/**
+ * Aplicar filtro de data
+ */
+function applyDateFilter() {
+    currentPage = 1; // Reset para primeira página
+    applyFiltersAndRender();
+}
 
 
 function renderProjetosTable(filteredProjetos) {
@@ -124,6 +154,21 @@ function applyFiltersAndRender() {
     const searchTerm = document.getElementById('searchInput').value.toLowerCase();
     
     let filteredProjetos = projetos;
+    
+    // Filtro por data
+    const startDateInput = document.getElementById('startDate');
+    const endDateInput = document.getElementById('endDate');
+    
+    if (startDateInput && endDateInput && startDateInput.value && endDateInput.value) {
+        const startDate = new Date(startDateInput.value + 'T00:00:00');
+        const endDate = new Date(endDateInput.value + 'T23:59:59');
+        
+        filteredProjetos = filteredProjetos.filter(projeto => {
+            if (!projeto.created_at && !projeto.createdAt) return true; // Incluir se não tiver data
+            const projectDate = new Date(projeto.created_at || projeto.createdAt);
+            return projectDate >= startDate && projectDate <= endDate;
+        });
+    }
     
     // Filtro por status (se ativo)
     if (currentStatusFilter) {

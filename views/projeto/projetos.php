@@ -78,10 +78,20 @@ include("../generics/sidebar.php");
             <i class="fas fa-search"></i>
             <input type="text" id="searchInput" placeholder="Buscar Projetos...">
         </div>
-        <button class="btn btn-primary" onclick="openModal()">
-            <i class="fas fa-plus"></i>
-            Novo Projeto
-        </button>
+        <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
+            <div style="display: flex; gap: 8px; align-items: center;">
+                <input type="date" id="startDate" title="Data inicial" style="padding: 10px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.05); color: #f1f5f9; cursor: pointer;">
+                <span style="color: #94a3b8;">até</span>
+                <input type="date" id="endDate" title="Data final" style="padding: 10px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.05); color: #f1f5f9; cursor: pointer;">
+            </div>
+            <button class="btn btn-secondary" onclick="applyDateFilter()" title="Filtrar por período">
+                <i class="fas fa-filter"></i>
+            </button>
+            <button class="btn btn-primary" onclick="openModal()">
+                <i class="fas fa-plus"></i>
+                Novo Projeto
+            </button>
+        </div>
     </div>
 
     <!-- Table -->
