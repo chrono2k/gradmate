@@ -110,6 +110,7 @@ function setupLegendEditing() {
 document.addEventListener('DOMContentLoaded', () => {
     applyLegendLabels();
     setupLegendEditing();
+    loadProjectStats(); // Carregar estatísticas reais dos projetos
 });
 
 // Apply RBAC once user info is available
@@ -131,6 +132,54 @@ async function loadStatus() {
                 response.statuses.map(item => [item.date, item.status])
             ): {};
     } catch (error) {
+    }
+}
+
+/**
+ * Carregar e atualizar estatísticas reais dos projetos
+ */
+async function loadProjectStats() {
+    try {
+        const response = await apiGet('project/?status=all');
+        
+        if (response.success) {
+            const projects = response.projects || [];
+            
+            // Total de projetos
+            const total = projects.length;
+            
+            // Projetos concluídos
+            const completed = projects.filter(p => 
+                (p.status || '').toLowerCase() === 'concluído'
+            ).length;
+            
+            // Projetos trancados
+            const locked = projects.filter(p => 
+                (p.status || '').toLowerCase() === 'trancado'
+            ).length;
+            
+            // Projetos em andamento (não concluídos e não trancados)
+            const ongoing = projects.filter(p => {
+                const status = (p.status || '').toLowerCase();
+                return status !== 'concluído' && status !== 'trancado';
+            }).length;
+            
+            // Atualizar os cards
+            document.getElementById('totalProjects').textContent = total;
+            document.getElementById('completedProjects').textContent = completed;
+            document.getElementById('ongoingProjects').textContent = ongoing;
+            document.getElementById('lockedProjects').textContent = locked;
+            
+        } else {
+            throw new Error('Falha ao carregar projetos');
+        }
+    } catch (error) {
+        console.error('Erro ao carregar estatísticas de projetos:', error);
+        // Manter valores padrão "-" em caso de erro
+        document.getElementById('totalProjects').textContent = '0';
+        document.getElementById('completedProjects').textContent = '0';
+        document.getElementById('ongoingProjects').textContent = '0';
+        document.getElementById('lockedProjects').textContent = '0';
     }
 }
 menuToggle.addEventListener('click', () => {

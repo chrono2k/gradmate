@@ -25,7 +25,7 @@ include("../generics/sidebar.php");
                 <i class="fa-solid fa-list-check"></i>
             </div>
             <div class="stat-info">
-                <h3>2</h3>
+                <h3 id="totalProjects">-</h3>
                 <p>Projetos cadastrados</p>
             </div>
         </div>
@@ -34,8 +34,8 @@ include("../generics/sidebar.php");
                 <i class="fa-solid fa-check"></i>
             </div>
             <div class="stat-info">
-                <h3>34</h3>
-                <p>Projetos concluidos</p>
+                <h3 id="completedProjects">-</h3>
+                <p>Projetos concluídos</p>
             </div>
         </div>
         <div class="stat-card">
@@ -43,17 +43,17 @@ include("../generics/sidebar.php");
                 <i class="fa-solid fa-hourglass-half"></i>
             </div>
             <div class="stat-info">
-                <h3>343</h3>
+                <h3 id="ongoingProjects">-</h3>
                 <p>Projetos em andamento</p>
             </div>
         </div>
         <div class="stat-card">
             <div class="stat-icon danger">
-                <i class="fa-solid fa-exclamation"></i>
+                <i class="fa-solid fa-lock"></i>
             </div>
             <div class="stat-info">
-                <h3>5</h3>
-                <p>Projetos em atraso</p>
+                <h3 id="lockedProjects">-</h3>
+                <p>Projetos trancados</p>
             </div>
         </div>
     </div>
