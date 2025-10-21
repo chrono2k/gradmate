@@ -47,51 +47,38 @@ function renderProjectData() {
     if (!projectData) return;
 
     document.getElementById('projectName').textContent = projectData.name;
-    // document.getElementById('projectDescription').textContent = projectData.description;
     document.getElementById('editProjectName').value = projectData.name;
     document.getElementById('editProjectDescription').value = projectData.description || '';
     document.getElementById('editProjectObservation').value = projectData.observation || '';
     document.getElementById('projectStatus').value = projectData.status;
 
-    // Update status badge class
     const statusBadge = document.getElementById('projectStatus');
     statusBadge.className = 'status-badge ' + projectData.status.toLowerCase().replace(' ', '-');
 
-    // Mostrar botões de atas conforme status
     const btnPDF = document.getElementById('btnGeneratePDF');
     const btnNotice = document.getElementById('btnGenerateNotice');
     const btnGenerateCertificate = document.getElementById('btnGenerateCertificate');
-    // Ata de Defesa: apenas em Defesa ou Concluído
+
     if (btnPDF && (projectData.status === 'Defesa' || projectData.status === 'Concluído')) {
         btnPDF.style.display = 'inline-flex';
         btnGenerateCertificate.style.display = 'inline-flex';
     } else if (btnPDF) {
         btnPDF.style.display = 'none';
     }
-    
-    // Aviso para Banca: em Qualificação, Defesa ou Concluído
     if (btnNotice && (projectData.status === 'Qualificação' || projectData.status === 'Defesa' || projectData.status === 'Concluído')) {
         btnNotice.style.display = 'inline-flex';
     } else if (btnNotice) {
         btnNotice.style.display = 'none';
     }
 
-    // Render course
     if (projectData.course) {
         renderCourse(projectData.course);
     }
 
-    // Render teachers
-    renderTeachersList(projectData.teachers || []);
-
-    // Render students
-    renderStudentsList(projectData.students || []);
-
-    // Render guests
-    renderGuestsList(projectData.guests || []);
-
-    // Render reports
-    renderReports(projectData.reports || []);
+    renderTeachersList(projectData.teachers || []); // função para carregar os orientadores do projeto
+    renderStudentsList(projectData.students || []); // função para carregar os alunos do projeto
+    renderGuestsList(projectData.guests || []); // função para carregar os convidados do projeto
+    renderReports(projectData.reports || []); //função para carregar os reports
 }
 
 // ========================= Arquivos do Projeto =========================
@@ -1095,7 +1082,17 @@ async function generateDefensePDF() {
         const curso = 'CURSO SUPERIOR DE TECNOLOGIA';
         const cidadeUf = 'Garça/SP';
 
-        const alunoNome = (projectData.students && projectData.students[0]?.name) ? projectData.students[0].name : '__________________';
+        // Aluno(s): montar nomes e flexões no singular/plural
+        const studentsArr = Array.isArray(projectData.students) ? projectData.students : [];
+        const studentNames = studentsArr.map(s => s?.name).filter(Boolean);
+        let nomesAlunos = '__________________';
+        if (studentNames.length === 1) {
+            nomesAlunos = studentNames[0];
+        } else if (studentNames.length > 1) {
+            const last = studentNames[studentNames.length - 1];
+            const firsts = studentNames.slice(0, -1);
+            nomesAlunos = `${firsts.join(', ')} e ${last}`;
+        }
         const tituloTrabalho = projectData.name || '__________________';
 
         // Data e hora no formato "Aos DD dias do mês de MÊS de YYYY, às HH:MMh"
@@ -1146,7 +1143,10 @@ async function generateDefensePDF() {
     // Título principal centralizado
     doc.setFontSize(12);
     doc.setFont(undefined, 'bold');
-    const tituloLinha = `ATA DE DEFESA DO PROJETO DE GRADUAÇÃO DO ${curso} DA ${instituicao}, APRESENTADO PELO ALUNO ${alunoNome}.`;
+    const isPlural = studentNames.length > 1;
+    const peloLabel = isPlural ? 'PELOS' : 'PELO';
+    const alunoLabelUpper = isPlural ? 'ALUNOS' : 'ALUNO';
+    const tituloLinha = `ATA DE DEFESA DO PROJETO DE GRADUAÇÃO DO ${curso} DA ${instituicao}, APRESENTADO ${peloLabel} ${alunoLabelUpper} ${nomesAlunos.toUpperCase()}.`;
         const tituloLinhas = doc.splitTextToSize(tituloLinha, maxWidth);
         doc.text(tituloLinhas, pageWidth / 2, yPos, { align: 'center' });
         yPos += (tituloLinhas.length * lineHeight) + 8;
@@ -1156,7 +1156,12 @@ async function generateDefensePDF() {
 
         // ============ CORPO FIXO (conforme padrão) ============
     const resultadoEscolhido = window.__defenseResult === 'reprovado' ? 'REPROVADO' : (window.__defenseResult === 'aprovado' ? 'APROVADO' : '__________________');
-    const paragrafo1 = `${dataHoraExtenso}, em sessão pública, realizou-se na ${localCompleto}, a defesa do Projeto de Graduação “${tituloTrabalho.toUpperCase()}”, de autoria do aluno ${alunoNome}. A Banca Examinadora iniciou suas atividades submetendo o aluno à forma regimental de defesa do Projeto de Graduação. Terminado o exame, a Banca procedeu ao julgamento e declarou o aluno ${resultadoEscolhido === '__________________' ? '__________________' : resultadoEscolhido}.`;
+    const doLabel = isPlural ? 'dos' : 'do';
+    const oLabel = isPlural ? 'os' : 'o';
+    const resultadoEscolhidoFlex = isPlural
+        ? (resultadoEscolhido === 'APROVADO' ? 'APROVADOS' : (resultadoEscolhido === 'REPROVADO' ? 'REPROVADOS' : resultadoEscolhido))
+        : resultadoEscolhido;
+    const paragrafo1 = `${dataHoraExtenso}, em sessão pública, realizou-se na ${localCompleto}, a defesa do Projeto de Graduação “${tituloTrabalho.toUpperCase()}”, de autoria ${doLabel} ${isPlural ? 'alunos' : 'aluno'} ${nomesAlunos}. A Banca Examinadora iniciou suas atividades submetendo ${oLabel} ${isPlural ? 'alunos' : 'aluno'} à forma regimental de defesa do Projeto de Graduação. Terminado o exame, a Banca procedeu ao julgamento e declarou ${oLabel} ${isPlural ? 'alunos' : 'aluno'} ${resultadoEscolhidoFlex === '__________________' ? '__________________' : resultadoEscolhidoFlex}.`;
         const linhas1 = doc.splitTextToSize(paragrafo1, maxWidth);
         doc.text(linhas1, margin, yPos);
         yPos += (linhas1.length * lineHeight) + 8;
@@ -1215,7 +1220,7 @@ async function generateDefensePDF() {
         }
 
     // Upload e download
-        const safeStudent = alunoNome.replace(/[^a-z0-9]/gi, '_');
+    const safeStudent = nomesAlunos.replace(/[^a-z0-9]/gi, '_');
         const fileName = `ATA_DEFESA_${safeStudent}_${Date.now()}.pdf`;
 
         // Upload para backend como arquivo do projeto
@@ -1277,7 +1282,7 @@ async function generateDefensePDF() {
                             const payloadAta = {
                                 file_id: fileId,
                                 ata_number: ataNumero, // Número da ata exibido no PDF
-                                student_name: alunoNome,
+                                student_name: nomesAlunos,
                                 title: tituloTrabalho,
                                 result: (window.__defenseResult === 'reprovado' ? 'reprovado' : 'aprovado'),
                                 location: localCompleto,
