@@ -923,7 +923,8 @@ async function saveReport() {
     };
 
     try {
-        const response = await apiDelete(`project/${PROJECT_ID}/reports/${editingReportId}`, JSON.stringify(data));
+        // Atualização de relatório deve usar PUT no endpoint correto
+        const response = await apiPut(`project/${PROJECT_ID}/reports/${editingReportId}`, JSON.stringify(data));
 
         if (response.success) {
             closeModal('modalEditReport');
@@ -944,7 +945,8 @@ async function deleteReport() {
     if (!confirm('Tem certeza que deseja excluir este relatório?')) return;
 
     try {
-        const response = await apiDelete(`project/${PROJECT_ID}`, {});
+        // Exclusão de relatório: DELETE /project/{project_id}/reports/{report_id}
+        const response = await apiDelete(`project/${PROJECT_ID}/reports/${editingReportId}`, {});
         if (response.success) {
             closeModal('modalEditReport');
             await loadProjectData();
