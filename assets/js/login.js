@@ -1,24 +1,18 @@
 function login(e) {
-    credenciais = {}
+    let credenciais = {}
     $(".vanillatoasts-toast").remove()
     let dados_login = $("#form_login").serializeArray()
     
     if (valida_form(dados_login)) {
         dados_login.map(function (x) { credenciais[x.name] = x.value; })
-        const agora = new Date();
-        const epochUTC = agora.getTime();
-        credenciais['epoch'] = Math.floor(epochUTC / 1000);
-        
         $.ajax({
             method: "POST",
             processData: true,
             contentType: "application/json",
             data: JSON.stringify(credenciais),
             url: link_api_grad_mate + "auth/login/",
-            success: function (resposta) {
-                let token = resposta.token
-                
-                localStorage.setItem("token", token);
+            success: function (response) {
+                localStorage.setItem("token", response.token);
                 window.location.href = url_base + "views/dashboard/dashboard.php"
             }
         }).fail(function () {

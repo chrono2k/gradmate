@@ -51,14 +51,12 @@ function renderAdminsTable() {
                 <td><span class="admin-badge"><i class="fas fa-shield-alt"></i> Admin</span></td>
                 <td>${status === 'ativo' ? 'Ativo' : 'Inativo'}</td>
                 <td>
-                    <div class="admin-actions">
-                        <button class="btn-action btn-reset" onclick="openResetPasswordModal(${admin.id}, '${escapeAttr(admin.username || '')}')">
+                    <div class="admin-actions" style="display:flex;gap:8px;">
+                        <button class="btn btn-secondary btn-icon" title="Resetar senha" onclick="openResetPasswordModal(${admin.id}, '${escapeAttr(admin.username || '')}')">
                             <i class="fas fa-key"></i>
-                            Resetar Senha
                         </button>
-                        <button class="btn-action btn-deactivate" onclick="openDeactivateModal(${admin.id}, '${escapeAttr(admin.username || '')}')">
+                        <button class="btn btn-danger btn-icon" title="Desativar" onclick="openDeactivateModal(${admin.id}, '${escapeAttr(admin.username || '')}')">
                             <i class="fas fa-user-slash"></i>
-                            Desativar
                         </button>
                     </div>
                 </td>
@@ -171,8 +169,10 @@ window.openResetPasswordModal = function(adminId, username) {
     };
 
     document.getElementById('confirmTitle').textContent = 'Resetar Senha';
-    document.getElementById('confirmMessage').textContent = 
-        `Deseja resetar a senha do usuário "${username}"? Uma nova senha temporária será gerada.`;
+    const msgEl = document.getElementById('confirmMessage');
+    if (msgEl) {
+        msgEl.innerHTML = `Deseja resetar a senha do usuário \"<strong>${escapeHtml(username)}</strong>\"?<br><small>Uma nova senha temporária será gerada.</small>`;
+    }
     
     const confirmBtn = document.getElementById('confirmActionBtn');
     confirmBtn.className = 'btn-primary';
@@ -189,8 +189,10 @@ window.openDeactivateModal = function(adminId, username) {
     };
 
     document.getElementById('confirmTitle').textContent = 'Desativar Administrador';
-    document.getElementById('confirmMessage').textContent = 
-        `Deseja realmente desativar o administrador "${username}"? Esta ação pode ser revertida posteriormente.`;
+    const msgEl = document.getElementById('confirmMessage');
+    if (msgEl) {
+        msgEl.innerHTML = `Deseja realmente desativar o administrador \"<strong>${escapeHtml(username)}</strong>\"?<br><small>Esta ação pode ser revertida posteriormente.</small>`;
+    }
     
     const confirmBtn = document.getElementById('confirmActionBtn');
     confirmBtn.className = 'btn-danger';

@@ -1,4 +1,5 @@
 let currentUser = null;
+let lastChangePasswordOpenAt = 0;
 
 document.addEventListener('DOMContentLoaded', async () => {
     if (!getAuthToken()) {
@@ -114,8 +115,14 @@ function initializeChangePasswordModal() {
 
     changePasswordBtn.addEventListener('click', (e) => {
         e.preventDefault();
-        changePasswordModal.classList.add('show');
-        userDropdown.classList.remove('show');
+        e.stopPropagation();
+        // Fecha o dropdown primeiro
+        if (userDropdown) userDropdown.classList.remove('show');
+        // Abre o modal no próximo tick para evitar receber o mouseup/click atual
+        setTimeout(() => {
+            lastChangePasswordOpenAt = Date.now();
+            changePasswordModal.classList.add('show');
+        }, 0);
     });
 
     const closeModal = () => {
@@ -128,9 +135,18 @@ function initializeChangePasswordModal() {
 
     changePasswordModal.addEventListener('click', (e) => {
         if (e.target === changePasswordModal) {
+            // Ignora cliques imediatamente após abrir (mesmo clique do open)
+            if (Date.now() - lastChangePasswordOpenAt < 200) return;
+            e.stopPropagation();
             closeModal();
         }
     });
+
+    // Evita que cliques dentro do conteúdo vazem para o overlay
+    const modalContainer = changePasswordModal.querySelector('.modal-container');
+    if (modalContainer) {
+        modalContainer.addEventListener('click', (e) => e.stopPropagation());
+    }
 
     changePasswordForm.addEventListener('submit', async (e) => {
         e.preventDefault();
@@ -159,6 +175,7 @@ async function handleChangePassword() {
     }
 
     try {
+        // Voltar ao endpoint de alteração de senha do próprio usuário
         const response = await apiPost('auth/user/password', {
             currentPassword: currentPassword,
             newPassword: newPassword

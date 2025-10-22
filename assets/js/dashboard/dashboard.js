@@ -141,14 +141,12 @@ async function loadStatus() {
 async function loadProjectStats(year = null) {
     try {
         const response = await apiGet('project/?status=all');
-        
         if (response.success) {
             let projects = response.projects || [];
             
             // Filtrar por ano se especificado (vem do calendário)
             if (year) {
-                projects = projects.filter(p => {
-                    if (!p.created_at && !p.createdAt) return true;
+                projects = projects.filter(p => { if (!p.created_at && !p.createdAt) return true;
                     const projectDate = new Date(p.created_at || p.createdAt);
                     return projectDate.getFullYear() === year;
                 });
@@ -156,20 +154,15 @@ async function loadProjectStats(year = null) {
             
             // Total de projetos
             const total = projects.length;
-            
+
             // Projetos concluídos
-            const completed = projects.filter(p => 
-                (p.status || '').toLowerCase() === 'concluído'
-            ).length;
+            const completed = projects.filter(p => (p.status || '').toLowerCase() === 'concluído').length;
             
             // Projetos trancados
-            const locked = projects.filter(p => 
-                (p.status || '').toLowerCase() === 'trancado'
-            ).length;
+            const locked = projects.filter(p => (p.status || '').toLowerCase() === 'trancado').length;
             
             // Projetos em andamento (não concluídos e não trancados)
-            const ongoing = projects.filter(p => {
-                const status = (p.status || '').toLowerCase();
+            const ongoing = projects.filter(p => { const status = (p.status || '').toLowerCase();
                 return status !== 'concluído' && status !== 'trancado';
             }).length;
             
@@ -178,7 +171,6 @@ async function loadProjectStats(year = null) {
             document.getElementById('completedProjects').textContent = completed;
             document.getElementById('ongoingProjects').textContent = ongoing;
             document.getElementById('lockedProjects').textContent = locked;
-            
         } else {
             throw new Error('Falha ao carregar projetos');
         }

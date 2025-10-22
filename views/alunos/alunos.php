@@ -115,6 +115,60 @@ include("../generics/sidebar.php");
     </div>
     </div>
 
+    <!-- Modais de confirmação e exibição de senha -->
+    <div class="modal-overlay" id="modalConfirm">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 id="confirmTitle">Confirmar Ação</h3>
+                <button class="modal-close" onclick="closeConfirmModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p id="confirmMessage">Deseja realmente continuar?</p>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-cancel" onclick="closeConfirmModal()">Cancelar</button>
+                <button class="btn btn-primary" id="confirmActionBtn" onclick="executeConfirmAction()">
+                    <i class="fas fa-check"></i> Confirmar
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="modalPasswordDisplay">
+        <div class="modal">
+            <div class="modal-header">
+                <h3><i class="fas fa-key"></i> Senha Gerada</h3>
+                <button class="modal-close" onclick="closePasswordModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="alert" style="background:#fff7ed;border:1px solid #fed7aa;padding:12px;border-radius:8px;color:#9a3412;margin-bottom:12px;">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <strong> Atenção:</strong> Anote esta senha, ela não será exibida novamente.
+                </div>
+                <div style="display:flex;gap:8px;align-items:center;margin-bottom:8px;">
+                    <div style="color:#FFFFFF;font-weight:600;">Usuário:</div>
+                    <code id="displayUsername" style="font-weight:700;color:#0f172a;background:#f1f5f9;padding:2px 6px;border-radius:6px;">-</code>
+                </div>
+                <div style="display:flex;gap:8px;align-items:center;">
+                    <div style="color:#FFFFFF;font-weight:600;">Senha Temporária:</div>
+                    <code id="displayPassword" style="font-weight:800;color:#0f172a;font-size:1.2rem;background:#eef2ff;padding:2px 6px;border-radius:6px;">-</code>
+                </div>
+                <button class="btn btn-secondary" onclick="copyPasswordToClipboard()" style="margin-top:12px;">
+                    <i class="fas fa-copy"></i> Copiar Senha
+                </button>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-primary" onclick="closePasswordModal()">
+                    <i class="fas fa-check"></i> Entendi
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- Modal de Cadastro/Edição -->
     <div class="modal-overlay" id="modalOverlay">
         <div class="modal">

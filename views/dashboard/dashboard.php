@@ -18,7 +18,6 @@ include("../generics/sidebar.php");
 <body>
 
 <main class="main-content" id="mainContent">
-    <!-- Stats Grid -->
     <div class="stats-grid">
         <div class="stat-card">
             <div class="stat-icon primary">
@@ -115,10 +114,6 @@ include("../generics/sidebar.php");
         </div>
     </div>
 
-<!--    <div class="content-card">-->
-<!--        <h2>Estatísticas em Tempo Real</h2>-->
-<!--        <p>Monitore todos os seus dispositivos e sensores em tempo real. Os cards acima mostram as métricas principais do sistema, atualizadas automaticamente.</p>-->
-<!--    </div>-->
 </main>
 </body>
 </html>

@@ -2,6 +2,9 @@ let alunos = [];
 let editingId = null;
 let currentPage = 1;
 const itemsPerPage = 10;
+// Fluxo de reset de senha
+let currentConfirmAction = null;
+let currentPasswordData = null;
 
 document.addEventListener('DOMContentLoaded', () => {
     initializeDateFilter(); // Configurar datas padrão (últimos 4 anos)
@@ -108,6 +111,9 @@ function renderStudentsTable(filteredStudents) {
             </td>
             <td>
                 <div class="action-buttons">
+                    <button class="btn btn-secondary btn-icon" onclick="openResetPasswordModal(${aluno.id}, '${escapeAttr(aluno.user?.username || aluno.registration || aluno.name || '')}')" title="Resetar senha">
+                        <i class="fas fa-key"></i>
+                    </button>
                     <button class="btn btn-warning btn-icon" onclick="editStudent(${aluno.id})" title="Editar">
                         <i class="fas fa-edit"></i>
                     </button>
@@ -474,5 +480,123 @@ document.getElementById('studentForm').addEventListener('submit', (e) => {
     e.preventDefault();
     saveStudent();
 });
+
+// ====== Reset de senha (Alunos) ======
+
+window.openResetPasswordModal = function(studentId, username) {
+    currentConfirmAction = { type: 'reset-student', id: studentId, username };
+    const titleEl = document.getElementById('confirmTitle');
+    const msgEl = document.getElementById('confirmMessage');
+    const btn = document.getElementById('confirmActionBtn');
+    if (!titleEl || !msgEl || !btn) return;
+    titleEl.textContent = 'Resetar Senha';
+    const safeUser = escapeHtml(username);
+    msgEl.innerHTML = `Deseja resetar a senha do aluno \"<strong>${safeUser}</strong>\"?<br><small>Uma nova senha temporária será gerada.</small>`;
+    btn.className = 'btn btn-primary';
+    btn.innerHTML = '<i class="fas fa-check"></i> Confirmar';
+    const modal = document.getElementById('modalConfirm');
+    if (modal) modal.classList.add('active');
+};
+
+window.closeConfirmModal = function() {
+    const modal = document.getElementById('modalConfirm');
+    if (modal) modal.classList.remove('active');
+    currentConfirmAction = null;
+};
+
+window.executeConfirmAction = async function() {
+    if (!currentConfirmAction) return;
+    const { type, id, username } = currentConfirmAction;
+    if (type === 'reset-student') {
+        await resetStudentPassword(id, username);
+    }
+    window.closeConfirmModal();
+};
+
+async function resetStudentPassword(studentId, username) {
+    try {
+        const newPassword = generateTempPassword();
+        // Tenta obter o userId do aluno já carregado
+        const aluno = alunos.find(a => a.id === studentId);
+        let userId = aluno && aluno.user ? aluno.user.id : null;
+
+        // Se não houver user.id no objeto atual, tenta obter via endpoint de detalhe
+        if (!userId) {
+            try {
+                const resp = await apiGet(`student/${studentId}`);
+                if (resp && resp.success && resp.student && resp.student.user && resp.student.user.id) {
+                    userId = resp.student.user.id;
+                }
+            } catch (e) {
+                // continua com fallback
+            }
+        }
+
+        let response = null;
+        if (userId) {
+            // Preferência: reset via usuário
+            response = await apiPost(`auth/users/${userId}/password`, { password: newPassword });
+        } else {
+            // Fallback: tentar via aluno
+            response = await apiPost(`student/${studentId}/password`, { password: newPassword });
+        }
+
+        if (response && response.success) {
+            showToast('Sucesso', 'Senha resetada com sucesso!', 'success');
+            currentPasswordData = { username, password: newPassword };
+            openPasswordModal();
+        } else {
+            throw new Error((response && response.message) || 'Erro ao resetar senha');
+        }
+    } catch (error) {
+        console.error('Erro ao resetar senha do aluno:', error);
+        showToast('Erro', error.message || 'Erro ao resetar senha do aluno', 'error');
+    }
+}
+
+function openPasswordModal() {
+    const modal = document.getElementById('modalPasswordDisplay');
+    if (!modal || !currentPasswordData) return;
+    const u = document.getElementById('displayUsername');
+    const p = document.getElementById('displayPassword');
+    if (u) u.textContent = currentPasswordData.username;
+    if (p) p.textContent = currentPasswordData.password;
+    modal.classList.add('active');
+}
+
+window.closePasswordModal = function() {
+    const modal = document.getElementById('modalPasswordDisplay');
+    if (modal) modal.classList.remove('active');
+    currentPasswordData = null;
+};
+
+window.copyPasswordToClipboard = function() {
+    const el = document.getElementById('displayPassword');
+    const val = el ? el.textContent : '';
+    if (!val) return;
+    navigator.clipboard.writeText(val).then(() => {
+        showToast('Sucesso', 'Senha copiada para a área de transferência', 'success');
+    }).catch(err => {
+        console.error('Falha ao copiar senha:', err);
+        showToast('Erro', 'Erro ao copiar senha', 'error');
+    });
+};
+
+function generateTempPassword() {
+    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789@$!%*?&';
+    let pass = '';
+    for (let i = 0; i < 10; i++) pass += chars.charAt(Math.floor(Math.random() * chars.length));
+    return pass;
+}
+
+function escapeAttr(str) {
+    return String(str || '').replace(/["]|[\']/g, '');
+}
+
+function escapeHtml(str) {
+    return String(str || '').replace(/[&<>"']/g, function(s){
+        return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#39;'}[s]);
+    });
+}
 
 

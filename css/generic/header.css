@@ -906,10 +906,25 @@ td {
     justify-content: center;
     z-index: 9999;
 }
+#confirmMessage{
+    color:white;
+}
 
 .modal-overlay.show {
     display: flex;
     animation: fadeIn 0.3s ease;
+    opacity: 1 !important; /* Garante visibilidade mesmo com overrides de outras páginas */
+}
+
+/* Overrides específicos do modal de Alterar Senha para evitar conflitos em páginas como cadastro de admin */
+#changePasswordModal.modal-overlay.show {
+    opacity: 1 !important;
+    display: flex;
+}
+
+#changePasswordModal .modal-container {
+    /* Em algumas páginas (ex.: admins.css) há transform: scale(0.9) por padrão. Forçamos 1 aqui. */
+    transform: scale(1) !important;
 }
 
 .modal-container {

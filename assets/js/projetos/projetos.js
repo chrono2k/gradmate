@@ -134,8 +134,6 @@ function renderPagination(filteredProjetos) {
  */
 async function loadProjetos() {
     const tbody = document.getElementById('projectTableBody');
-    const searchTerm = document.getElementById('searchInput').value.toLowerCase();
-
     tbody.innerHTML = `
         <tr>
             <td colspan="5" style="text-align: center; padding: 40px;">
@@ -185,7 +183,6 @@ function applyFiltersAndRender() {
     
     let filteredProjetos = projetos;
     
-    // Filtro por data
     const startDateInput = document.getElementById('startDate');
     const endDateInput = document.getElementById('endDate');
     
@@ -214,14 +211,11 @@ function applyFiltersAndRender() {
         }
     }
     
-    // Filtro por status (se ativo)
     if (currentStatusFilter) {
         filteredProjetos = filteredProjetos.filter(projeto => 
             (projeto.status || 'Pré-projeto') === currentStatusFilter
         );
     }
-    
-    // Filtro por busca de texto
     if (searchTerm) {
         filteredProjetos = filteredProjetos.filter(projeto =>
             projeto.name.toLowerCase().includes(searchTerm) ||
@@ -245,7 +239,7 @@ function applyFiltersAndRender() {
         return;
     }
     
-    currentPage = 1; // Reset para primeira página ao filtrar
+    currentPage = 1;
     renderProjetosTable(filteredProjetos);
     renderPagination(filteredProjetos);
 }

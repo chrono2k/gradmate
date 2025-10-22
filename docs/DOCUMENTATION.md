@@ -153,6 +153,47 @@ Depuração rápida
 
 > Este guia é focado no usuário da aplicação (admin, coordenação, etc.). Mostra como entrar, navegar e executar as tarefas principais no GradMate.
 
+## 10) Reset de Senha (Admins, Alunos e Professores)
+
+Padrão de UX e ícones
+
+- Ações em tabela usam ícones consistentes:
+  - Resetar senha: ícone de chave (fa-key)
+  - Desativar/Ativar usuário: ícones fa-user-slash (desativar) e fa-user-check (ativar)
+- Botões são compactos (ícone apenas) com tooltip/`title` descritivo.
+
+Fluxo — Resetar Senha
+
+1) Clique no ícone de chave ao lado do usuário (Admin, Aluno ou Professor).
+2) Confirme no modal: a mensagem exibe o nome do usuário em destaque e informa que uma senha temporária será gerada.
+3) Após confirmação, o sistema gera uma senha forte e faz a chamada à API para definir a nova senha.
+4) Um modal exibe:
+   - Usuário: mostrado em destaque (monoespaçado)
+   - Senha Temporária: mostrada em monoespaçado com fundo leve e botão “Copiar Senha”
+
+Integração com API (preferências e fallbacks)
+
+- Preferencial: `POST auth/users/{userId}/password` body: `{ password }`
+- Fallback Alunos: `POST student/{id}/password` body: `{ password }`
+- Fallback Professores: `POST teacher/{id}/password` body: `{ password }`
+
+Notas de Segurança
+
+- A senha temporária é exibida apenas uma vez. Oriente o usuário a copiá-la antes de fechar o modal.
+- Recomenda-se trocar a senha no primeiro login após reset.
+- O front realiza escaping de HTML nos nomes exibidos nos modais.
+
+Padrão visual
+
+- Mensagem de confirmação com o nome do usuário em <strong>negrito</strong> e uma segunda linha (pequena) explicando a ação.
+- Exibição de Usuário e Senha Temporária em elementos `code` com leve destaque de fundo para leitura.
+
+### Alterar Senha (usuário logado)
+
+- Endpoint: `POST auth/user/password`
+- Body: `{ currentPassword: string, newPassword: string }`
+- Uso no front: formulário do menu do usuário (header) valida os campos e realiza a chamada; em caso de sucesso, fecha o modal e exibe toast.
+
 ## Acesso e Login
 
 1) Abra no navegador: `http://localhost/gradmate/`

@@ -35,10 +35,9 @@ function getAuthToken() {
  * Configurar headers padrão para requisições
  */
 function getHeaders() {
-    const token = getAuthToken();
     return {
         'Content-Type': 'application/json',
-        'Authorization': `${token}`
+        'Authorization': `${getAuthToken()}`
     };
 }
 
@@ -137,13 +136,11 @@ async function apiDownload(endpoint) {
         const disposition = response.headers.get('Content-Disposition') || response.headers.get('content-disposition') || '';
         let filename = null;
 
-        // Tenta RFC 5987 (filename*=)
         const fnStarMatch = disposition.match(/filename\*=(?:UTF-8''|)([^;\s]+)/i);
         if (fnStarMatch && fnStarMatch[1]) {
             try { filename = decodeURIComponent(fnStarMatch[1].replace(/^"|"$/g, '')); } catch { filename = fnStarMatch[1]; }
         }
 
-        // Tenta filename="..." padrão
         if (!filename) {
             const fnMatch = disposition.match(/filename="?([^";]+)"?/i);
             if (fnMatch && fnMatch[1]) {
@@ -151,7 +148,6 @@ async function apiDownload(endpoint) {
             }
         }
 
-        // Fallback: tenta pegar da URL de resposta
         if (!filename) {
             try {
                 const urlObj = new URL(response.url);
