@@ -261,6 +261,14 @@ include("../generics/sidebar.php");
                         </label>
                         <input type="text" id="noticeRoom" placeholder="Ex.: Laboratório 1" autocomplete="off" />
                     </div>
+
+                    <div class="info-field">
+                        <label for="noticeDeliveryDate">
+                            <i class="fas fa-calendar-check"></i>
+                            Data de Entrega
+                        </label>
+                        <input type="date" id="noticeDeliveryDate" autocomplete="off" />
+                    </div>
                 </div>
                 <div class="modal-footer">
                     <button class="btn btn-secondary" onclick="closeNoticeModal()">Cancelar</button>

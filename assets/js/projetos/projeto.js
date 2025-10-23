@@ -1407,6 +1407,19 @@ function openNoticeModal() {
     if (roomInput && !roomInput.value) {
         roomInput.value = 'Laboratório 1';
     }
+    // Não pré-preenche a data de entrega; usuário define manualmente
+    // Se desejar um padrão, descomente abaixo para usar +3 dias úteis aproximado
+    // const deliveryInput = document.getElementById('noticeDeliveryDate');
+    // if (deliveryInput && !deliveryInput.value && dateInput?.value) {
+    //     try {
+    //         const base = new Date(dateInput.value + 'T12:00:00');
+    //         base.setDate(base.getDate() + 3);
+    //         const yyyyD = base.getFullYear();
+    //         const mmD = String(base.getMonth() + 1).padStart(2, '0');
+    //         const ddD = String(base.getDate()).padStart(2, '0');
+    //         deliveryInput.value = `${yyyyD}-${mmD}-${ddD}`;
+    //     } catch {}
+    // }
     
     // Preencher ATA Nº
     prefillNoticeAtaNumber();
@@ -1451,11 +1464,13 @@ function confirmGenerateNotice() {
     const dateInput = document.getElementById('noticeDate');
     const timeInput = document.getElementById('noticeTime');
     const roomInput = document.getElementById('noticeRoom');
+    const deliveryInput = document.getElementById('noticeDeliveryDate');
     
     window.__noticeAtaNumber = ataInput ? ataInput.value : '';
     window.__noticeDate = dateInput ? dateInput.value : '';
     window.__noticeTime = timeInput ? timeInput.value : '';
     window.__noticeRoom = roomInput ? roomInput.value : '';
+    window.__noticeDeliveryDate = deliveryInput ? deliveryInput.value : '';
     
     closeNoticeModal();
     generateNoticePDF();
@@ -1563,7 +1578,7 @@ function generateNoticePDF() {
         
         yPos = boxStartY + boxHeight + 10;
 
-        // Textos informativos
+    // Textos informativos
         doc.setFontSize(10);
         doc.setFont(undefined, 'normal');
         
@@ -1577,24 +1592,14 @@ function generateNoticePDF() {
         doc.text(linhas2, margin, yPos);
         yPos += (linhas2.length * lineHeight) + 8;
         
-    // Período de entrega (ex.: data + 3 dias úteis)
-        let dataEntrega = '';
-        if (dataStr) {
-            const dateObj = new Date(dataStr + 'T12:00:00');
-            dateObj.setDate(dateObj.getDate() + 3);
-            const ddE = String(dateObj.getDate()).padStart(2, '0');
-            const mmE = String(dateObj.getMonth() + 1).padStart(2, '0');
-            const yyE = dateObj.getFullYear();
-            
-            dateObj.setDate(dateObj.getDate() + 2);
-            const ddF = String(dateObj.getDate()).padStart(2, '0');
-            const mmF = String(dateObj.getMonth() + 1).padStart(2, '0');
-            const yyF = dateObj.getFullYear();
-            
-            dataEntrega = `${ddE} a ${ddF} de ${['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro'][dateObj.getMonth()]} de ${yyF}`;
+        // Data de entrega (informada pelo usuário no modal)
+        const entregaStr = (window.__noticeDeliveryDate || '').trim();
+        let entregaFormatada = '';
+        if (entregaStr && entregaStr.includes('-')) {
+            const [yE, mE, dE] = entregaStr.split('-');
+            entregaFormatada = `${dE}/${mE}/${yE}`;
         }
-        
-        const texto3 = `O período de entrega da versão final corrigida será de ${dataEntrega || '[definir]'}, pelo Teams.`;
+        const texto3 = `A entrega da versão final corrigida será em ${entregaFormatada || '[definir]'}, pelo Teams.`;
         const linhas3 = doc.splitTextToSize(texto3, pageWidth - (2 * margin));
         doc.text(linhas3, margin, yPos);
 
