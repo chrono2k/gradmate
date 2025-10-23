@@ -1421,6 +1421,49 @@ function openNoticeModal() {
     //     } catch {}
     // }
     
+    // Inicializar Flatpickr nos campos (padronização com tela de projetos)
+    try {
+        const deliveryInput = document.getElementById('noticeDeliveryDate');
+        if (window.flatpickr) {
+            // Datas: noticeDate e noticeDeliveryDate
+            const fpDateOpts = {
+                    dateFormat: 'Y-m-d',           // valor real (ISO) para backend
+                    altInput: true,                // exibição amigável
+                    altFormat: 'd/m/Y',            // formato BR exibido
+                    altInputClass: 'gm-date-input',
+                    allowInput: true,
+                    locale: (window.flatpickr?.l10ns?.pt) ? { ...window.flatpickr.l10ns.pt, firstDayOfWeek: 0 } : undefined
+                };
+            if (dateInput && !dateInput._flatpickr) {
+                window.flatpickr(dateInput, fpDateOpts);
+            }
+            if (deliveryInput && !deliveryInput._flatpickr) {
+                window.flatpickr(deliveryInput, fpDateOpts);
+            }
+            // Horário: noticeTime (somente hora)
+            const fpTimeOpts = {
+                enableTime: true,
+                noCalendar: true,
+                dateFormat: 'H:i',
+                time_24hr: true,
+                allowInput: true,
+                altInput: true,
+                altFormat: 'H:i',
+                altInputClass: 'gm-date-input'
+            };
+            if (timeInput && !timeInput._flatpickr) {
+                window.flatpickr(timeInput, fpTimeOpts);
+            }
+            // Sincronizar valores default nas instâncias
+            if (dateInput?._flatpickr && dateInput.value) {
+                dateInput._flatpickr.setDate(dateInput.value, true, 'Y-m-d');
+            }
+            if (timeInput?._flatpickr && timeInput.value) {
+                timeInput._flatpickr.setDate(timeInput.value, true, 'H:i');
+            }
+        }
+    } catch {}
+
     // Preencher ATA Nº
     prefillNoticeAtaNumber();
     
@@ -1466,11 +1509,16 @@ function confirmGenerateNotice() {
     const roomInput = document.getElementById('noticeRoom');
     const deliveryInput = document.getElementById('noticeDeliveryDate');
     
+    // Ler valor do input original (não o altInput) — flatpickr mantém ISO em value
+    const dateVal = dateInput?._flatpickr ? dateInput._flatpickr.input.value : (dateInput ? dateInput.value : '');
+    const timeVal = timeInput?._flatpickr ? timeInput._flatpickr.input.value : (timeInput ? timeInput.value : '');
+    const deliveryVal = deliveryInput?._flatpickr ? deliveryInput._flatpickr.input.value : (deliveryInput ? deliveryInput.value : '');
+
     window.__noticeAtaNumber = ataInput ? ataInput.value : '';
-    window.__noticeDate = dateInput ? dateInput.value : '';
-    window.__noticeTime = timeInput ? timeInput.value : '';
+    window.__noticeDate = dateVal || '';
+    window.__noticeTime = timeVal || '';
     window.__noticeRoom = roomInput ? roomInput.value : '';
-    window.__noticeDeliveryDate = deliveryInput ? deliveryInput.value : '';
+    window.__noticeDeliveryDate = deliveryVal || '';
     
     closeNoticeModal();
     generateNoticePDF();
@@ -1599,7 +1647,7 @@ function generateNoticePDF() {
             const [yE, mE, dE] = entregaStr.split('-');
             entregaFormatada = `${dE}/${mE}/${yE}`;
         }
-        const texto3 = `A entrega da versão final corrigida será em ${entregaFormatada || '[definir]'}, pelo Teams.`;
+        const texto3 = `O período maximo para entrega da versão final corrigida será em ${entregaFormatada || '[definir]'}, pelo Teams.`;
         const linhas3 = doc.splitTextToSize(texto3, pageWidth - (2 * margin));
         doc.text(linhas3, margin, yPos);
 

@@ -8,6 +8,8 @@
     <link rel="stylesheet" href="../../css/projetos/projeto.css?v=<?php echo date('YmdHis'); ?>">
     <link rel="stylesheet" href="../../css/generic/header.css?v=<?php echo date('YmdHis'); ?>">
     <link rel="stylesheet" href="../../css/generic/generic.css?v=<?php echo date('YmdHis'); ?>">
+    <!-- Flatpickr CSS (padronização de datas/horários como em projetos.php) -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
     <!-- jsPDF para geração de PDFs -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <style>
@@ -243,7 +245,7 @@ include("../generics/sidebar.php");
                             <i class="fas fa-calendar"></i>
                             Data
                         </label>
-                        <input type="date" id="noticeDate" autocomplete="off" />
+                        <input type="text" id="noticeDate" placeholder="dd/mm/aaaa" autocomplete="off" />
                     </div>
 
                     <div class="info-field">
@@ -251,7 +253,7 @@ include("../generics/sidebar.php");
                             <i class="fas fa-clock"></i>
                             Horário
                         </label>
-                        <input type="time" id="noticeTime" autocomplete="off" />
+                        <input type="text" id="noticeTime" placeholder="hh:mm" autocomplete="off" />
                     </div>
 
                     <div class="info-field">
@@ -267,7 +269,7 @@ include("../generics/sidebar.php");
                             <i class="fas fa-calendar-check"></i>
                             Data de Entrega
                         </label>
-                        <input type="date" id="noticeDeliveryDate" autocomplete="off" />
+                        <input type="text" id="noticeDeliveryDate" placeholder="dd/mm/aaaa" autocomplete="off" />
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -537,4 +539,7 @@ include("../generics/sidebar.php");
 </main>
 </body>
 </html>
+<!-- Flatpickr JS (padronização com projetos.php) -->
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/pt.js"></script>
 <script src="../../assets/js/projetos/projeto.js?v=<?php echo date('YmdHis'); ?>"></script>
