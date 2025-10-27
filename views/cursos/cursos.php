@@ -1,14 +1,14 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+<?php include_once(__DIR__ . '/../../config/config.php'); ?>
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>GradMate</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <link rel="stylesheet" href="../../css/generic/header.css?v=<?php echo date('YmdHis'); ?>">
-    <link rel="stylesheet" href="../../css/curso/curso.css?v=<?php echo date('YmdHis'); ?>">
-
-
+    <link rel="stylesheet" href="../../css/generic/header.css?v=<?php echo ver(); ?>">
+    <link rel="stylesheet" href="../../css/curso/curso.css?v=<?php echo ver(); ?>">
 </head>
 <?php
 include("../generics/header.php");
@@ -26,7 +26,6 @@ include("../generics/sidebar.php");
         </h1>
     </div>
 
-    <!-- Stats -->
     <div class="stats-grid">
         <div class="stat-card">
             <div class="stat-icon primary">
@@ -57,7 +56,6 @@ include("../generics/sidebar.php");
         </div>
     </div>
 
-    <!-- Action Bar -->
     <div class="action-bar">
         <div class="search-box">
             <i class="fas fa-search"></i>
@@ -69,7 +67,6 @@ include("../generics/sidebar.php");
         </button>
     </div>
 
-    <!-- Table -->
     <div class="table-container">
         <div class="table-header">
             <h2>
@@ -92,7 +89,6 @@ include("../generics/sidebar.php");
                 </tr>
                 </thead>
                 <tbody id="cursosTableBody">
-                <!-- Dados serão inseridos aqui -->
                 </tbody>
             </table>
             <div class="pagination" id="pagination"></div>
@@ -100,7 +96,6 @@ include("../generics/sidebar.php");
     </div>
     </div>
 
-    <!-- Modal de Cadastro/Edição -->
     <div class="modal-overlay" id="modalOverlay">
         <div class="modal">
             <div class="modal-header">
@@ -115,7 +110,6 @@ include("../generics/sidebar.php");
             <div class="modal-body">
                 <form id="courseForm">
                     <input type="hidden" id="courseId">
-
                     <div class="form-group">
                         <label for="courseName">
                             <i class="fas fa-book"></i>
@@ -156,4 +150,4 @@ include("../generics/sidebar.php");
 </main>
 </body>
 </html>
-<script src="../../assets/js/curso/curso.js?v=<?php echo date('YmdHis'); ?>"></script>
+<script src="../../assets/js/curso/curso.js?v=<?php echo ver(); ?>"></script>

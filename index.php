@@ -1,13 +1,12 @@
 <!DOCTYPE html>
 <html lang="pt-br">
-
+<?php include_once(__DIR__ . '/config/config.php'); ?>
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="assets/libs/bootstrap/bootstrap-5.3.3-dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="assets/libs/fontawesome-free-6.5.1-web/css/all.css">
-    <?php include_once(__DIR__ . '/config/config.php'); ?>
     <link rel="stylesheet" href="css/generic/generic.css<?php echo ver(); ?>">
     <link rel="stylesheet" href="assets/libs/jquery/VanillaToasts/vanillatoasts.css">
     <link rel="stylesheet" href="css/index.css<?php echo ver(); ?>">
@@ -22,7 +21,6 @@
             <div class="col-12 col-md-8 col-lg-5 justify-content-center container_login">
                 <div class="card bg-primary shadow-soft border-light p-4">
                     <div class="d-flex justify-content-between align-items-center mb-3">
-<!--                        <img src="assets/img/icone%20tcc.png" class="icone_login" alt="Logo cps" style="width: 40px;">-->
                         <div class="flex-grow-1 text-center texto_login">
                             <h4 class="mb-0 texto_login_1">Grad</h4>
                             <h4 class="mb-0 texto_login_2">Mate</h4>

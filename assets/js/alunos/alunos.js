@@ -310,6 +310,7 @@ async function saveStudent() {
     const email = document.getElementById('studentEmail').value.trim();
     const registration = document.getElementById('studentRegistration').value.trim();
     const observacao = document.getElementById('studentObservation').value.trim();
+    const telephone = document.getElementById('studentPhone')?.value.trim() || '';
     // imagem opcional (futuro)
     const image = "";
     if (!nome) {
@@ -355,6 +356,7 @@ async function saveStudent() {
                 name: nome,
                 registration: registration,
                 email: email,
+                telephone: telephone || null,
                 image: image,
                 observation: observacao || null
             });
@@ -367,6 +369,7 @@ async function saveStudent() {
                 name: nome,
                 email: email,
                 registration: registration,
+                telephone: telephone || null,
                 image: image,
                 observation: observacao || null
             });
@@ -404,6 +407,8 @@ async function editStudent(id) {
             document.getElementById('studentRegistration').value = aluno.registration;
             document.getElementById('studentEmail').value = aluno.user.username;
             document.getElementById('studentObservation').value = aluno.observation || '';
+            const phoneEl = document.getElementById('studentPhone');
+            if (phoneEl) phoneEl.value = aluno.telephone || aluno.phone || aluno.celphone || '';
 
             const overlay = document.getElementById('modalOverlay');
             overlay.classList.add('active');
@@ -599,4 +604,29 @@ function escapeHtml(str) {
     });
 }
 
+flatpickr("#startDate", {
+    locale: { ...flatpickr.l10ns.pt, firstDayOfWeek: 0 },
+    dateFormat: "Y-m-d",
+    altInput: true,
+    altFormat: "d/m/Y",
+    altInputClass: "gm-date-input",
+    onChange: function(selectedDates, dateStr, instance) {
+        applyDateFilter();
+    },
+    defaultDate: document.getElementById('startDate').value || undefined,
+    // firstDayOfWeek já vem como 1 (segunda) no locale pt
+});
+
+flatpickr("#endDate", {
+    locale: { ...flatpickr.l10ns.pt, firstDayOfWeek: 0 },
+    dateFormat: "Y-m-d",
+    altInput: true,
+    altFormat: "d/m/Y",
+    altInputClass: "gm-date-input",
+    onChange: function(selectedDates, dateStr, instance) {
+        applyDateFilter();
+    },
+    defaultDate: document.getElementById('endDate').value || undefined,
+    // firstDayOfWeek já vem como 1 (segunda) no locale pt
+});
 

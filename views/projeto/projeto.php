@@ -1,17 +1,17 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+<?php include_once(__DIR__ . '/../../config/config.php'); ?>
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>GradMate</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <link rel="stylesheet" href="../../css/projetos/projeto.css?v=<?php echo date('YmdHis'); ?>">
-    <link rel="stylesheet" href="../../css/generic/header.css?v=<?php echo date('YmdHis'); ?>">
-    <link rel="stylesheet" href="../../css/generic/generic.css?v=<?php echo date('YmdHis'); ?>">
-    <!-- Flatpickr CSS (padronização de datas/horários como em projetos.php) -->
+    <link rel="stylesheet" href="../../css/projetos/projeto.css?v=<?php echo ver(); ?>">
+    <link rel="stylesheet" href="../../css/generic/header.css?v=<?php echo ver(); ?>">
+    <link rel="stylesheet" href="../../css/generic/generic.css?v=<?php echo ver(); ?>">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
-    <!-- jsPDF para geração de PDFs -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/plugins/monthSelect/style.css">
+
     <style>
     </style>
 </head>
@@ -24,12 +24,10 @@ include("../generics/sidebar.php");
 
 <main class="main-content" id="mainContent">
     <div class="container">
-        <!-- Page Header -->
         <div class="page-header">
             <div class="header-content">
                 <div class="header-info">
                     <h1 id="projectName">Carregando...</h1>
-<!--                    <p id="projectDescription">Descrição do projeto</p>-->
                 </div>
                 <div style="display: flex; gap: 12px; align-items: center;">
                     <select id="projectStatus" class="status-badge" onchange="updateProjectStatus()">
@@ -43,11 +41,8 @@ include("../generics/sidebar.php");
             </div>
         </div>
 
-        <!-- Main Grid -->
         <div class="grid-layout">
-            <!-- Left Column -->
             <div style="display: flex; flex-direction: column; gap: 24px;">
-                <!-- Project Info -->
                 <div class="card">
                     <div class="card-header">
                         <h3 class="card-title">
@@ -82,16 +77,16 @@ include("../generics/sidebar.php");
                     </div>
                 </div>
 
-                <!-- Reports / Chat -->
                 <div class="card">
                     <div class="card-header">
                         <h3 class="card-title">
                             <i class="fas fa-comments"></i>
-                            Relatórios e Acompanhamento
+                            Acompanhamento de pendencias
                         </h3>
+                        <input type="text" id="reportMonthFilter" placeholder="Filtrar mês" title="Filtrar relatórios por mês" onchange="applyReportMonthFilter()" style="padding:8px 12px; border-radius:8px; border:2px solid #cbd5e1; background:#ffffff; color:#1e293b; cursor:pointer; font-weight:500; font-size:0.9rem; width:130px; margin-right: 8px;" />
                         <button class="btn btn-primary" onclick="openNewReportModal()" title="Gerar Relatório">
                             <i class="fas fa-plus" style="margin-right:8px;"></i>
-                            Gerar Relatório
+                            Adcionar pendencia
                         </button>
                     </div>
 
@@ -105,7 +100,6 @@ include("../generics/sidebar.php");
                     </div>
                 </div>
 
-                <!-- Project Files -->
                 <div class="card">
                     <div class="card-header">
                         <h3 class="card-title">
@@ -138,9 +132,7 @@ include("../generics/sidebar.php");
                 </div>
             </div>
 
-            <!-- Right Column -->
             <div style="display: flex; flex-direction: column; gap: 24px;">
-                <!-- Teachers -->
                 <div class="card">
                     <div class="card-header">
                         <h3 class="card-title">
@@ -159,7 +151,6 @@ include("../generics/sidebar.php");
                     </div>
                 </div>
 
-                <!-- Students -->
                 <div class="card">
                     <div class="card-header">
                         <h3 class="card-title">
@@ -178,7 +169,6 @@ include("../generics/sidebar.php");
                     </div>
                 </div>
 
-                <!-- Guests (Convidados/Banca) -->
                 <div class="card">
                     <div class="card-header">
                         <h3 class="card-title">
@@ -197,12 +187,11 @@ include("../generics/sidebar.php");
                     </div>
                 </div>
 
-                <!-- Atas / Documentos -->
                 <div class="card">
                     <div class="card-header">
                         <h3 class="card-title">
                             <i class="fas fa-file-contract"></i>
-                            Atas
+                            Relatórios
                         </h3>
                     </div>
 
@@ -210,18 +199,23 @@ include("../generics/sidebar.php");
                         <button id="btnGeneratePDF" class="btn btn-success" onclick="openResultModal()" style="display:none;">
                             Gerar Ata de Defesa
                         </button>
-                        <button id="btnGenerateNotice" class="btn btn-primary" onclick="openNoticeModal()" style="display:none;">
+                        <button id="btnGenerateQualPDF" class="btn btn-secondary" onclick="openQualificationModal()" style="display:none;">
+                            Gerar Ata de Qualificação
+                        </button>
+                        <button id="btnGenerateNotice" class="btn btn-secondary btn-aviso" onclick="openNoticeModal()" style="display:none;">
                             Gerar Aviso para Banca
                         </button>
                         <button id="btnGenerateCertificate" class="btn btn-secondary" onclick="openCertificateModal()" style="display:none">
                             Gerar Certificado de Orientação
+                        </button>
+                        <button id="btnGenerateOrientationReport" class="btn btn-secondary" onclick="openOrientationReportModal(null)" style="display: inline-flex">
+                            Gerar Relatório de Orientação
                         </button>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Modal Aviso para Banca -->
         <div class="modal-overlay" id="modalNotice">
             <div class="modal">
                 <div class="modal-header">
@@ -234,7 +228,6 @@ include("../generics/sidebar.php");
                     </button>
                 </div>
                 <div class="modal-body">
-                    <!-- Campo ATA Nº oculto -->
                     <div class="info-field" style="display: none;">
                         <label for="noticeAtaNumber">ATA Nº</label>
                         <input type="text" id="noticeAtaNumber" autocomplete="off" />
@@ -282,7 +275,34 @@ include("../generics/sidebar.php");
             </div>
         </div>
 
-        <!-- Modal Resultado da Defesa -->
+        <div class="modal-overlay" id="modalQual">
+            <div class="modal">
+                <div class="modal-header">
+                    <h3 class="modal-title"><i class="fas fa-clipboard-check"></i> Dados da Qualificação</h3>
+                    <button class="modal-close" onclick="closeQualificationModal()">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="info-field" style="margin-bottom:8px;">
+                        <label>Notas dos orientadores</label>
+                        <div id="qualNotesList" style="display:flex;flex-direction:column;gap:8px;"></div>
+                    </div>
+                    <div class="info-field" style="margin-bottom:8px;">
+                        <label>Observações</label>
+                        <textarea id="qualObservation" placeholder="Observações opcionais..." style="min-height:60px;"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" onclick="closeQualificationModal()">Cancelar</button>
+                    <button class="btn btn-success" onclick="confirmGenerateQualification()">
+                        <i class="fas fa-file-pdf"></i>
+                        Gerar Ata de Qualificação
+                    </button>
+                </div>
+            </div>
+        </div>
+
         <div class="modal-overlay" id="modalResult">
             <div class="modal">
                 <div class="modal-header">
@@ -295,7 +315,6 @@ include("../generics/sidebar.php");
                     </button>
                 </div>
                 <div class="modal-body">
-                    <!-- Campo ATA Nº oculto para o usuário, mantido para preenchimento automático -->
                     <div class="info-field" style="display: none;">
                         <label for="defenseAtaNumber">
                             <i class="fas fa-hashtag"></i>
@@ -334,7 +353,6 @@ include("../generics/sidebar.php");
         </div>
     </div>
 
-    <!-- Modal Add Teacher -->
     <div class="modal-overlay" id="modalAddTeacher">
         <div class="modal">
             <div class="modal-header">
@@ -357,7 +375,6 @@ include("../generics/sidebar.php");
         </div>
     </div>
 
-    <!-- Modal Add Student -->
     <div class="modal-overlay" id="modalAddStudent">
         <div class="modal">
             <div class="modal-header">
@@ -380,7 +397,6 @@ include("../generics/sidebar.php");
         </div>
     </div>
 
-    <!-- Modal Edit Report -->
     <div class="modal-overlay" id="modalEditReport">
         <div class="modal">
             <div class="modal-header">
@@ -406,6 +422,10 @@ include("../generics/sidebar.php");
                             <option value="concluido">Concluído</option>
                         </select>
                     </div>
+                    <div class="info-field" style="margin-bottom:12px;">
+                        <label>Data do encontro</label>
+                        <input type="text" id="editReportDate" placeholder="dd/mm/aaaa" autocomplete="off" />
+                    </div>
                     <div class="info-field" style="margin-bottom:12px; grid-column: 1 / -1;">
                         <label>Pendências</label>
                         <textarea id="editReportPendency" style="min-height:50px;"></textarea>
@@ -428,7 +448,6 @@ include("../generics/sidebar.php");
         </div>
     </div>
 
-    <!-- Modal New Report -->
     <div class="modal-overlay" id="modalNewReport">
         <div class="modal">
             <div class="modal-header">
@@ -449,6 +468,10 @@ include("../generics/sidebar.php");
                             <option value="pendente">Pendente</option>
                             <option value="concluido">Concluído</option>
                         </select>
+                    </div>
+                    <div class="info-field" style="margin-bottom:12px;">
+                        <label>Data do encontro</label>
+                        <input type="text" id="newReportDate" placeholder="dd/mm/aaaa" autocomplete="off" />
                     </div>
                     <div class="info-field" style="margin-bottom:12px;">
                         <label>Local</label>
@@ -536,10 +559,45 @@ include("../generics/sidebar.php");
         </div>
     </div>
 
+    <div class="modal-overlay" id="modalOrientationReport">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 class="modal-title">Gerar Ficha de Orientação</h3>
+                <button class="modal-close" onclick="closeOrientationReportModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="info-field">
+                    <label>Período</label>
+                    <select id="orientationPeriod">
+                        <option value="Manhã">Manhã</option>
+                        <option value="Noite">Noite</option>
+                    </select>
+                </div>
+                <div class="info-field">
+                    <label>Disciplina</label>
+                    <select id="orientationDiscipline">
+                        <option value="TG1">TG1</option>
+                        <option value="TG2">TG2</option>
+                    </select>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeOrientationReportModal()">Cancelar</button>
+                <button class="btn btn-success" onclick="confirmGenerateOrientationReport()">
+                    <i class="fas fa-file-pdf"></i>
+                    Gerar Ficha
+                </button>
+            </div>
+        </div>
+    </div>
 </main>
 </body>
 </html>
-<!-- Flatpickr JS (padronização com projetos.php) -->
+
 <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/pt.js"></script>
-<script src="../../assets/js/projetos/projeto.js?v=<?php echo date('YmdHis'); ?>"></script>
+<script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/plugins/monthSelect/index.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="../../assets/js/projetos/projeto.js?v=<?php echo ver(); ?>"></script>

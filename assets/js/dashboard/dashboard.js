@@ -73,7 +73,6 @@ function applyLegendLabels() {
 }
 
 function setupLegendEditing() {
-    // Remove previous listeners by cloning nodes, then (re)attach depending on permission
     const beginEdit = (span) => {
         span.contentEditable = 'true';
         span.focus();
@@ -120,7 +119,6 @@ document.addEventListener('userLoaded', (event) => {
     canEditDashboard = authority === 'admin' || authority === 'administrator' || authority === 'role_admin';
     applyLegendLabels();
     setupLegendEditing();
-    // Re-render to (re)bind day click handlers with permission
     renderYearCalendar(true);
 });
 
@@ -313,7 +311,6 @@ async function toggleStatus(dateStr) {
         return;
     }
     const prevStatus = dateStatuses[dateStr] || null;
-    // Ciclo de status: null -> 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> null
     const nextStatus = prevStatus ? (prevStatus === 6 ? null : prevStatus + 1) : 1;
 
     if (nextStatus) {
@@ -344,19 +341,19 @@ async function toggleStatus(dateStr) {
 function previousYear() {
     selectedYear--;
     renderYearCalendar();
-    loadProjectStats(selectedYear); // Atualizar cards com dados do novo ano
+    loadProjectStats(selectedYear);
 }
 
 function nextYear() {
     selectedYear++;
     renderYearCalendar();
-    loadProjectStats(selectedYear); // Atualizar cards com dados do novo ano
+    loadProjectStats(selectedYear);
 }
 
 function currentYear() {
     selectedYear = new Date().getFullYear();
     renderYearCalendar();
-    loadProjectStats(selectedYear); // Atualizar cards com dados do novo ano
+    loadProjectStats(selectedYear);
 }
 
 function resetCalendar() {

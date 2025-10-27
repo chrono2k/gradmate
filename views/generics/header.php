@@ -45,7 +45,6 @@
     </div>
 </header>
 
-<!-- Modal de Alterar Senha -->
 <div class="modal-overlay" id="changePasswordModal">
     <div class="modal-container">
         <div class="modal-header">

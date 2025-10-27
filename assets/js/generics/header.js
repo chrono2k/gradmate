@@ -45,14 +45,12 @@ function updateUserMenu(user) {
     // Atualiza o papel/cargo
     if (user.authority) {
         const roleMap = {
-            // Portuguese / existing forms
             'admin': 'Administrador',
             'professor': 'Professor',
             'aluno': 'Aluno',
             'ROLE_ADMIN': 'Administrador',
             'ROLE_PROFESSOR': 'Professor',
             'ROLE_ALUNO': 'Aluno',
-            // English forms returned by some backends
             'student': 'Aluno',
             'teacher': 'Professor',
             'administrator': 'Administrador'

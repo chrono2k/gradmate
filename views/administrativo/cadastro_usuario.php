@@ -1,18 +1,19 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+<?php include_once(__DIR__ . '/../../config/config.php'); ?>
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Administradores - GradMate</title>
-    
-    <link rel="stylesheet" href="../../assets/libs/fontawesome-free-6.5.1-web/css/all.min.css">
-    <link rel="stylesheet" href="../../css/generic/generic.css?v=<?php echo date('YmdHis'); ?>">
-    <link rel="stylesheet" href="../../css/generic/header.css?v=<?php echo date('YmdHis'); ?>">
-    <link rel="stylesheet" href="../../css/generic/sidebar.css?v=<?php echo date('YmdHis'); ?>">
-    <link rel="stylesheet" href="../../css/administrativo/cadastro_usuario.css?v=<?php echo date('YmdHis'); ?>">
-    <link rel="stylesheet" href="../../css/administrativo/admins.css?v=<?php echo date('YmdHis'); ?>">
-</head>
 
+    <link rel="stylesheet" href="../../assets/libs/fontawesome-free-6.5.1-web/css/all.min.css">
+    <link rel="stylesheet" href="../../css/generic/generic.css?v=<?php echo ver(); ?>">
+    <link rel="stylesheet" href="../../css/generic/header.css?v=<?php echo ver(); ?>">
+    <link rel="stylesheet" href="../../css/generic/sidebar.css?v=<?php echo ver(); ?>">
+    <link rel="stylesheet" href="../../css/administrativo/cadastro_usuario.css?v=<?php echo ver(); ?>">
+    <link rel="stylesheet" href="../../css/administrativo/admins.css?v=<?php echo ver(); ?>">
+</head>
 <?php
 include("../generics/header.php");
 include("../generics/sidebar.php");
@@ -21,7 +22,6 @@ include("../generics/sidebar.php");
 <body>
 <main class="main-content" id="mainContent">
     <div class="page-container">
-        <!-- Page Header -->
         <div class="page-header">
             <div class="page-title">
                 <i class="fas fa-user-shield"></i>
@@ -33,7 +33,6 @@ include("../generics/sidebar.php");
             </button>
         </div>
 
-        <!-- Admins Table -->
         <div class="admins-table-wrapper">
             <table class="admins-table" id="adminsTable">
                 <thead>
@@ -47,13 +46,11 @@ include("../generics/sidebar.php");
                     </tr>
                 </thead>
                 <tbody id="adminsTbody">
-                    <!-- Rows rendered by JS -->
                 </tbody>
             </table>
         </div>
     </div>
 
-    <!-- Modal: Create Admin -->
     <div class="modal-overlay" id="modalCreateAdmin">
         <div class="modal-container">
             <div class="modal-header">
@@ -109,7 +106,6 @@ include("../generics/sidebar.php");
         </div>
     </div>
 
-    <!-- Modal: Password Display (padronizado com Alunos/Professores) -->
     <div class="modal-overlay" id="modalPasswordDisplay">
         <div class="modal">
             <div class="modal-header">
@@ -146,7 +142,6 @@ include("../generics/sidebar.php");
         </div>
     </div>
 
-    <!-- Modal: Confirm Action -->
     <div class="modal-overlay" id="modalConfirm">
         <div class="modal-container modal-confirm">
             <div class="modal-header">
@@ -167,7 +162,8 @@ include("../generics/sidebar.php");
     </div>
 </main>
 
-<script src="../../assets/js/generics/funcoes_auxiliares.js?v=<?php echo date('YmdHis'); ?>"></script>
-<script src="../../assets/js/administrativo/admins.js?v=<?php echo date('YmdHis'); ?>"></script>
 </body>
 </html>
+
+<script src="../../assets/js/generics/funcoes_auxiliares.js?v=<?php echo ver(); ?>"></script>
+<script src="../../assets/js/administrativo/admins.js?v=<?php echo ver(); ?>"></script>

@@ -1,16 +1,14 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+<?php include_once(__DIR__ . '/../../config/config.php'); ?>
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>GradMate</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <?php include_once(__DIR__ . '/../../config/config.php'); ?>
     <link rel="stylesheet" href="../../css/alunos/alunos.css<?php echo ver(); ?>">
-    <!-- Flatpickr CSS -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
-    <style>
-    </style>
 </head>
 <?php
 include("../generics/header.php");
@@ -28,7 +26,6 @@ include("../generics/sidebar.php");
         </h1>
     </div>
 
-    <!-- Stats -->
     <div class="stats-grid">
         <div class="stat-card">
             <div class="stat-icon primary">
@@ -59,14 +56,12 @@ include("../generics/sidebar.php");
         </div>
     </div>
 
-    <!-- Action Bar -->
     <div class="action-bar">
         <div class="search-box">
             <i class="fas fa-search"></i>
             <input type="text" id="searchInput" placeholder="Buscar alunos...">
         </div>
         <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
-            <!-- Filtro de Data (transparente e automático) -->
             <div style="display: flex; gap: 8px; align-items: center;">
                 <i class="fas fa-calendar-alt" style="color: #475569;"></i>
                 <input type="text" id="startDate" title="Data inicial (últimos 4 anos)" onchange="applyDateFilter()" style="padding: 8px 12px; border-radius: 8px; border: 2px solid #cbd5e1; background: #ffffff; color: #1e293b; cursor: pointer; font-weight: 500; font-size: 0.9rem; width: 150px;">
@@ -80,7 +75,6 @@ include("../generics/sidebar.php");
         </div>
     </div>
 
-    <!-- Table -->
     <div class="table-container">
         <div class="table-header">
             <h2>
@@ -106,7 +100,6 @@ include("../generics/sidebar.php");
                 </tr>
                 </thead>
                 <tbody id="studentsTableBody">
-                <!-- Dados serão inseridos aqui -->
                 </tbody>
             </table>
             <div class="pagination" id="pagination"></div>
@@ -115,7 +108,6 @@ include("../generics/sidebar.php");
     </div>
     </div>
 
-    <!-- Modais de confirmação e exibição de senha -->
     <div class="modal-overlay" id="modalConfirm">
         <div class="modal">
             <div class="modal-header">
@@ -169,7 +161,6 @@ include("../generics/sidebar.php");
         </div>
     </div>
 
-    <!-- Modal de Cadastro/Edição -->
     <div class="modal-overlay" id="modalOverlay">
         <div class="modal">
             <div class="modal-header">
@@ -207,6 +198,17 @@ include("../generics/sidebar.php");
                                 id="studentEmail"
                                 placeholder="Email que será utilizado para logar no sistema"
                                 required
+                        >
+                    </div>
+                    <div class="form-group">
+                        <label for="studentPhone">
+                            <i class="fas fa-phone"></i>
+                            Telefone (celular)
+                        </label>
+                        <input
+                                type="text"
+                                id="studentPhone"
+                                placeholder="Telefone do aluno (opcional)"
                         >
                     </div>
                     <div class="form-group">
@@ -248,38 +250,8 @@ include("../generics/sidebar.php");
     </div>
 </main>
 
-<!-- Flatpickr JS -->
-<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
-<script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/pt.js"></script>
-<script>
-    // Inicializar Flatpickr nos inputs de data
-    flatpickr("#startDate", {
-        locale: { ...flatpickr.l10ns.pt, firstDayOfWeek: 0 },
-        dateFormat: "Y-m-d",
-        altInput: true,
-        altFormat: "d/m/Y",
-        altInputClass: "gm-date-input",
-        onChange: function(selectedDates, dateStr, instance) {
-            applyDateFilter();
-        },
-        defaultDate: document.getElementById('startDate').value || undefined,
-        // firstDayOfWeek já vem como 1 (segunda) no locale pt
-    });
-    
-    flatpickr("#endDate", {
-        locale: { ...flatpickr.l10ns.pt, firstDayOfWeek: 0 },
-        dateFormat: "Y-m-d",
-        altInput: true,
-        altFormat: "d/m/Y",
-        altInputClass: "gm-date-input",
-        onChange: function(selectedDates, dateStr, instance) {
-            applyDateFilter();
-        },
-        defaultDate: document.getElementById('endDate').value || undefined,
-        // firstDayOfWeek já vem como 1 (segunda) no locale pt
-    });
-</script>
-
 </body>
 </html>
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/pt.js"></script>
 <script src="../../assets/js/alunos/alunos.js<?php echo ver(); ?>"></script>
